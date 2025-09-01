@@ -335,6 +335,27 @@ server {
 
 本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
 
+## 📸 界面示例
+
+### 主要功能界面展示
+
+<div align="center">
+
+**API 测试界面**
+
+![API 测试界面](examples/示例.jpg)
+
+**项目管理界面**
+
+![项目管理界面](examples/示例2.jpg)
+![管理员界面](examples/示例3.jpg)
+
+**高级配置界面**
+
+![高级配置界面](examples/示例4.jpg)
+
+</div>
+
 ## 📝 更新日志
 
 ### v2.0.0 (最新)
