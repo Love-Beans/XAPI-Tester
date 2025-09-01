@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>项目管理 - API测试工具</title>
+    <script src="/js/xapi_tool.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .header h1 {
+            color: #2d3748;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            color: #4a5568;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+            grid-auto-rows: 120px;
+        }
+
+        @media (min-width: 1200px) {
+            .projects-grid {
+                grid-template-columns: repeat(5, 1fr);
+            }
+        }
+
+        .project-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 8px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid #feebc8;
+            position: relative;
+        }
+
+        .project-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
+        }
+
+        .project-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .edit-btn {
+            position: absolute;
+            top: 2px;
+            right: 8px;
+            width: 32px;
+            height: 32px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #667eea;
+            transition: all 0.2s ease;
+            z-index: 10;
+        }
+
+        .edit-btn:hover {
+            color: #5a67d8;
+            transform: scale(1.2);
+        }
+
+        .project-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 6px;
+            padding-right: 30px;
+        }
+
+        .project-description {
+            color: #718096;
+            font-size: 12px;
+            line-height: 1.4;
+            margin-bottom: 12px;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            overflow: hidden;
+        }
+
+        .project-meta {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .permission-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .permission-admin {
+            background: #fed7d7;
+            color: #c53030;
+        }
+
+        .permission-write {
+            background: #feebc8;
+            color: #dd6b20;
+        }
+
+        .permission-read {
+            background: #c6f6d5;
+            color: #38a169;
+        }
+
+        .project-date {
+            color: #a0aec0;
+            font-size: 10px;
+        }
+
+        .project-info {
+            padding: 8px 12px;
+            background: #f7fafc;
+            border-radius: 6px;
+            color: #2d3748;
+            font-weight: 600;
+        }
+
+        .user-selection {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .search-box {
+            padding: 8px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .user-list {
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .user-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            border-bottom: 1px solid #f1f5f9;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .user-item:hover {
+            background-color: #f8fafc;
+        }
+
+        .user-item:last-child {
+            border-bottom: none;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .user-role {
+            font-size: 12px;
+            color: #718096;
+        }
+
+        .permission-select {
+            padding: 4px 8px;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .current-members {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .member-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .member-item:last-child {
+            border-bottom: none;
+        }
+
+        .remove-btn {
+            background: #fed7d7;
+            color: #c53030;
+            border: none;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .remove-btn:hover {
+            background: #feb2b2;
+        }
+
+        .create-project-card {
+            background: #667eea;
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 120px;
+            transition: all 0.3s ease;
+        }
+
+        .create-project-card:hover {
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .create-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            font-size: 24px;
+            color: white;
+        }
+
+        .create-text {
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #a0aec0;
+            padding: 4px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 24px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .empty-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .empty-description {
+            font-size: 16px;
+            opacity: 0.8;
+        }
+
+        @media (max-width: 768px) {
+            .projects-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .user-info {
+                justify-content: space-between;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h3>项目管理</h3>
+            <div class="user-info">
+                <button class="btn btn-secondary" onclick="logout()">退出登录</button>
+            </div>
+        </div>
+
+        <div id="projectsContainer">
+            <div class="projects-grid" id="projectsGrid">
+                <!-- 项目卡片将在这里动态生成 -->
+            </div>
+        </div>
+
+        <div id="emptyState" class="empty-state" style="display: none;">
+            <div class="empty-icon">📁</div>
+            <div class="empty-title">暂无项目</div>
+            <div class="empty-description">创建您的第一个项目开始管理API请求</div>
+        </div>
+    </div>
+
+    <!-- 创建项目模态框 -->
+    <div id="createProjectModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">创建新项目</h2>
+                <button class="close-btn" onclick="closeCreateModal()">&times;</button>
+            </div>
+            <form id="createProjectForm">
+                <div class="form-group">
+                    <label class="form-label" for="projectName">项目名称 *</label>
+                    <input type="text" id="projectName" class="form-input" required placeholder="输入项目名称">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="projectDescription">项目描述</label>
+                    <textarea id="projectDescription" class="form-input form-textarea" placeholder="输入项目描述（可选）"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeCreateModal()">取消</button>
+                    <button type="submit" class="btn btn-primary">创建项目</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 编辑项目模态框 -->
+    <div id="editProjectModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">编辑项目权限</h2>
+                <button class="close-btn" onclick="closeEditModal()">&times;</button>
+            </div>
+            <div class="form-group">
+                <label class="form-label">项目名称</label>
+                <div id="editProjectName" class="project-info"></div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">选择用户添加到项目</label>
+                <div class="user-selection">
+                    <div class="search-box">
+                        <input type="text" id="userSearch" class="form-input" placeholder="搜索用户...">
+                    </div>
+                    <div class="user-list" id="userList"></div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">当前项目成员</label>
+                <div class="current-members" id="currentMembers"></div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeEditModal()">取消</button>
+                <button type="button" class="btn btn-primary" onclick="saveProjectChanges()">保存更改</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            checkUserAuth();
+        });
+
+        // 编辑项目相关变量
+        let currentEditingProject = null;
+        let allUsers = [];
+        let projectMembers = [];
+        let pendingChanges = [];
+
+        // 打开项目配置页面
+        function openProjectConfig(projectId, projectName, event) {
+            event.stopPropagation();
+            window.location.href = `/project_config.html?project_id=${projectId}&project_name=${encodeURIComponent(projectName)}`;
+        }
+        
+        // 打开编辑项目模态框
+        async function openEditModal(projectId, event) {
+            event.stopPropagation();
+            currentEditingProject = projectId;
+            
+            try {
+                // 加载项目详情
+                const projectResponse = await fetch(`/api/projects/${projectId}`, {
+                    headers: get_x_token()
+                });
+                const project = await projectResponse.json();
+                
+                if (!projectResponse.ok) {
+                    alert('加载项目信息失败');
+                    return;
+                }
+                
+                // 设置项目名称
+                document.getElementById('editProjectName').textContent = project.name;
+                console.log('API响应的项目数据:', project);
+                // 加载所有用户和项目成员
+                await Promise.all([
+                    loadAllUsers(),
+                    loadProjectMembers(projectId)
+                ]);
+                
+                // 显示模态框
+                document.getElementById('editProjectModal').style.display = 'block';
+            } catch (error) {
+                console.error('打开编辑模态框失败:', error);
+                alert('加载项目信息失败，请稍后重试');
+            }
+        }
+
+        // 关闭编辑项目模态框
+        function closeEditModal() {
+            document.getElementById('editProjectModal').style.display = 'none';
+            currentEditingProject = null;
+            allUsers = [];
+            projectMembers = [];
+            pendingChanges = [];
+            document.getElementById('userSearch').value = '';
+        }
+
+        // 加载所有用户
+        async function loadAllUsers() {
+            try {
+                const response = await fetch('/api/users', {
+                    headers: get_x_token()
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    allUsers = result.data || [];
+                    displayUserList(allUsers);
+                } else {
+                    console.error('加载用户列表失败');
+                }
+            } catch (error) {
+                console.error('加载用户列表失败:', error);
+            }
+        }
+
+        // 加载项目成员
+        async function loadProjectMembers(projectId) {
+            try {
+                const response = await fetch(`/api/projects/members?project_id=${projectId}`, {
+                    headers: get_x_token()
+                });
+                
+                if (response.ok) {
+                    projectMembers = await response.json();
+                    console.log('加载项目成员',projectMembers);
+                    displayCurrentMembers();
+                } else {
+                    console.error('加载项目成员失败');
+                }
+            } catch (error) {
+                console.error('加载项目成员失败:', error);
+            }
+        }
+
+        // 显示用户列表
+        function displayUserList(users) {
+            const userList = document.getElementById('userList');
+            userList.innerHTML = '';
+            
+            // 过滤掉已经是项目成员的用户
+            const memberIds = projectMembers.map(member => member.user_id);
+            const availableUsers = users.filter(user => !memberIds.includes(user.id));
+            
+            availableUsers.forEach(user => {
+                const userItem = document.createElement('div');
+                userItem.className = 'user-item';
+                userItem.onclick = () => addUserToProject(user);
+                
+                userItem.innerHTML = `
+                    <div class="user-info">
+                        <div class="user-name">${escapeHtml(user.username)}</div>
+                    </div>
+                    <select class="permission-select" onclick="event.stopPropagation()">
+                        <option value="read">只读</option>
+                        <option value="write">读写</option>
+                        <option value="owner">所有者</option>
+                    </select>
+                `;
+                
+                userList.appendChild(userItem);
+            });
+        }
+
+        // 显示当前成员
+        function displayCurrentMembers() {
+            const currentMembers = document.getElementById('currentMembers');
+            currentMembers.innerHTML = '';
+            
+            projectMembers.forEach(member => {
+                const memberItem = document.createElement('div');
+                memberItem.className = 'member-item';
+                
+                const permissionText = ({
+                    'owner': '所有者',
+                    'write': '读写',
+                    'read': '只读'
+                }[member.permission_level] || member.permission_level);
+                
+                memberItem.innerHTML = `
+                    <div class="user-info">
+                        <div class="user-name">${escapeHtml(member.username)}</div>
+                    </div>
+                    <div class="permission-text">${permissionText}</div>
+                    <button class="remove-btn" onclick="removeUserFromProject(${member.user_id})">移除</button>
+                `;
+                console.log(member.username,permissionText,member.permission_level)
+                currentMembers.appendChild(memberItem);
+            });
+        }
+
+        // 添加用户到项目
+        function addUserToProject(user) {
+            const userItem = event.currentTarget;
+            const permissionSelect = userItem.querySelector('.permission-select');
+            const permission = permissionSelect.value;
+            
+            // 添加到待处理更改列表
+            pendingChanges.push({
+                action: 'add',
+                user_id: user.id,
+                permission_level: permission
+            });
+            
+            // 添加到当前成员列表（临时显示）
+            projectMembers.push({
+                user_id: user.id,
+                username: user.username,
+                permission_level: permission
+            });
+            
+            // 刷新显示
+            displayUserList(allUsers.filter(u => {
+                const searchTerm = document.getElementById('userSearch').value.toLowerCase();
+                return u.username.toLowerCase().includes(searchTerm);
+            }));
+            displayCurrentMembers();
+        }
+
+        // 从项目移除用户
+        function removeUserFromProject(userId) {
+            // 添加到待处理更改列表
+            pendingChanges.push({
+                action: 'remove',
+                user_id: userId
+            });
+            
+            // 从当前成员列表移除（临时）
+            projectMembers = projectMembers.filter(member => member.user_id !== userId);
+            
+            // 刷新显示
+            displayUserList(allUsers.filter(u => {
+                const searchTerm = document.getElementById('userSearch').value.toLowerCase();
+                return u.username.toLowerCase().includes(searchTerm);
+            }));
+            displayCurrentMembers();
+        }
+
+        // 保存项目更改
+        async function saveProjectChanges() {
+            try {
+                // 处理成员更改
+                for (const change of pendingChanges) {
+                    if (change.action === 'add') {
+                        const response = await fetch(`/api/projects/members`, {
+                            method: 'POST',
+                            headers: get_x_token(),
+                            body: JSON.stringify({
+                                project_id: currentEditingProject,
+                                user_id: change.user_id,
+                                permission_level: change.permission_level
+                            })
+                        });
+                        
+                        if (!response.ok) {
+                            const error = await response.json();
+                            throw new Error(error.error || '添加用户失败');
+                        }
+                    } else if (change.action === 'remove') {
+                        const response = await fetch(`/api/projects/members`, {
+                            method: 'DELETE',
+                            headers: get_x_token(),
+                            body: JSON.stringify({
+                                project_id: currentEditingProject,
+                                user_id: change.user_id
+                            })
+                        });
+                        
+                        if (!response.ok) {
+                            const error = await response.json();
+                            throw new Error(error.error || '移除用户失败');
+                        }
+                    }
+                }
+                
+                alert('项目更改保存成功！');
+                closeEditModal();
+                loadProjects(); // 重新加载项目列表
+                
+            } catch (error) {
+                console.error('保存项目更改失败:', error);
+                alert('保存更改失败: ' + error.message);
+            }
+        }
+
+        // 用户搜索功能
+        document.getElementById('userSearch').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredUsers = allUsers.filter(user => 
+                user.username.toLowerCase().includes(searchTerm)
+            );
+            displayUserList(filteredUsers);
+        });
+
+        // 检查用户认证状态
+        async function checkUserAuth() {
+            if(!await checkAuth()){
+                return;
+            }
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = '/login.html';
+                return;
+            }
+            const userStr = localStorage.getItem('user');
+            if (!userStr) {
+                window.location.href = '/login.html';
+                return false;
+            }
+            
+            currentUser = JSON.parse(userStr);
+            
+            loadProjects();
+        }
+
+        // 加载项目列表
+        async function loadProjects() {
+            const token = localStorage.getItem('token');
+            try {
+                const response = await fetch('/api/projects', {
+                    headers: get_x_token()
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    displayProjects(data.projects);
+                } else {
+                    console.error('加载项目失败');
+                    showEmptyState();
+                }
+            } catch (error) {
+                console.error('加载项目失败:', error);
+                showEmptyState();
+            }
+        }
+
+        // 显示项目列表
+        function displayProjects(projects) {
+            const projectsGrid = document.getElementById('projectsGrid');
+            const emptyState = document.getElementById('emptyState');
+
+            if (projects.length === 0) {
+                showEmptyState();
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            projectsGrid.innerHTML = '';
+
+            // 添加创建项目卡片（仅admin可见）
+            if (currentUser && currentUser.role === 'admin') {
+                const createCard = document.createElement('div');
+                createCard.className = 'project-card create-project-card';
+                createCard.onclick = openCreateModal;
+                createCard.innerHTML = `
+                    <div class="create-icon">+</div>
+                    <div class="create-text">创建新项目</div>
+                `;
+                projectsGrid.appendChild(createCard);
+            }
+
+            // 添加项目卡片
+            projects.forEach(project => {
+                const card = createProjectCard(project);
+                projectsGrid.appendChild(card);
+            });
+        }
+
+        // 创建项目卡片
+        function createProjectCard(project) {
+            const card = document.createElement('div');
+            card.className = 'project-card';
+            card.onclick = (e) => {
+                if (!e.target.closest('.edit-btn')) {
+                    openProject(project.id);
+                }
+            };
+
+            const permissionClass = `permission-${project.permission_level}`;
+            const permissionText = currentUser.role === 'admin' ? '管理员' : ({
+                'owner': '所有者',
+                'write': '读写',
+                'read': '只读'
+            }[project.permission_level] || project.permission_level);
+
+            const createdDate = new Date(project.created_at).toLocaleDateString('zh-CN');
+            
+            // 检查是否可以编辑（owner或admin权限）
+            const canEdit = project.permission_level === 'owner' || currentUser.role === 'admin';
+            const editButton = canEdit ? `<button class="edit-btn" onclick="openProjectConfig(${project.id}, '${escapeHtml(project.name)}', event)" title="项目配置">⚙</button>` : '';
+
+            card.innerHTML = `
+                ${editButton}
+                <div class="project-header">
+                    <div>
+                        <div class="project-title">${escapeHtml(project.name)}</div>
+                    </div>
+                </div>
+                <div class="project-description" style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div class="permission-badge">${escapeHtml(project.description || '暂无描述')}</div>
+                    <div class="permission-badge ${permissionClass}" style="margin-left: 10px; flex-shrink: 0;">权限: ${permissionText}</div>
+                </div>
+                <div class="project-meta">
+                    <div class="project-date">创建于 ${createdDate}</div>
+                    <div class="project-date">创建者: ${escapeHtml(project.created_username)}</div>
+                </div>
+            `;
+
+            return card;
+        }
+
+        // 显示空状态
+        function showEmptyState() {
+            const projectsGrid = document.getElementById('projectsGrid');
+            const emptyState = document.getElementById('emptyState');
+            
+            projectsGrid.innerHTML = `
+                <div class="project-card create-project-card" onclick="openCreateModal()">
+                    <div class="create-icon">+</div>
+                    <div class="create-text">创建新项目</div>
+                </div>
+            `;
+            emptyState.style.display = 'block';
+        }
+
+        // 打开项目
+        function openProject(projectId) {
+            window.location.href = `/api_tester.html?project_id=${projectId}`;
+        }
+
+        // 打开创建项目模态框
+        async function openCreateModal() {
+            // 检查是否为admin用户
+            if (!currentUser || currentUser.role !== 'admin') {
+                alert('只有管理员可以创建项目');
+                return;
+            }
+            document.getElementById('createProjectModal').style.display = 'block';
+            document.getElementById('projectName').focus();
+        }
+
+        // 关闭创建项目模态框
+        function closeCreateModal() {
+            document.getElementById('createProjectModal').style.display = 'none';
+            document.getElementById('createProjectForm').reset();
+        }
+
+        // 创建项目表单提交
+        document.getElementById('createProjectForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('projectName').value.trim();
+            const description = document.getElementById('projectDescription').value.trim();            
+            if (!name) {
+                alert('请输入项目名称');
+                return;
+            }
+            
+            const requestData = { name, description };
+            
+            try {
+                const response = await fetch('/api/projects', {
+                    method: 'POST',
+                    headers: get_x_token(),
+                    body: JSON.stringify(requestData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    closeCreateModal();
+                    loadProjects(); // 重新加载项目列表
+                    alert('项目创建成功！');
+                } else {
+                    alert(data.error || '创建项目失败');
+                }
+            } catch (error) {
+                console.error('创建项目失败:', error);
+                alert('创建项目失败，请稍后重试');
+            }
+        });
+
+        // 退出登录
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/login.html';
+        }
+
+        // HTML转义函数
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // 点击模态框外部关闭
+        window.onclick = function(event) {
+            const modal = document.getElementById('createProjectModal');
+            if (event.target === modal) {
+                closeCreateModal();
+            }
+        }
+    </script>
+</body>
+</html>

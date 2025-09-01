@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API工具内容</title>
+    <script src="/js/beautify.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 1px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], select, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        textarea {
+            min-height: 100px;
+            font-family: monospace;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .response {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            overflow-x: auto;
+        }
+        .response pre {
+            margin: 0;
+            white-space: pre-wrap;
+        }
+        
+        /* 代码编辑器样式 */
+        .code-container {
+            position: relative;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.4;
+            max-height: 400px;
+            overflow: auto;
+        }
+        
+        .code-header {
+            background-color: #e9ecef;
+            padding: 8px 12px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 8px;
+            color: #6c757d;
+        }
+        
+        .code-controls {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .code-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 8px;
+        }
+        
+        .code-btn:hover {
+            background: #5a6268;
+        }
+        
+        .code-content {
+            display: flex;
+        }
+        
+        .line-numbers {
+            background-color: #f1f3f4;
+            color: #6c757d;
+            padding: 1px 1px;
+            text-align: right;
+            user-select: none;
+            border-right: 1px solid #ddd;
+            min-width: 20px;
+        }
+        
+        .code-text {
+            padding: 10px;
+            flex: 1;
+            white-space: pre;
+            overflow-x: auto;
+        }
+        
+        .collapsible-line {
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .collapsible-line:before {
+            content: '▼';
+            position: absolute;
+            left: -5px;
+            color: #6c757d;
+            font-size: 10px;
+        }
+        
+        .collapsible-line.collapsed:before {
+            content: '▶';
+        }
+        
+        .collapsed-content {
+            display: none;
+        }
+        
+        /* 响应区域布局样式 */
+        .response-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .response-title {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .response-title h3 {
+            margin: 0;
+            color: #333;
+        }
+        
+        .response-title p {
+            margin: 0;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .response-status {
+            display: flex;
+            align-items: center;
+        }
+        
+        .status-code {
+            font-size: 24px;
+            font-weight: bold;
+            padding: 8px 16px;
+            border-radius: 6px;
+            background-color: #f8f9fa;
+            border: 2px solid #dee2e6;
+        }
+        
+        .status-code.success {
+            color: #28a745;
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+        
+        .status-code.error {
+            color: #dc3545;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        
+        .status-code.warning {
+            color: #ffc107;
+            background-color: #fff3cd;
+            border-color: #ffeaa7;
+        }
+        
+        .response-content {
+            display: flex;
+            gap: 5px;
+            height: 400px;
+        }
+        
+        .response-section {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        
+        .headers-section {
+            flex: 0 0 30%;
+        }
+        
+        .body-section {
+            flex: 0 0 70%;
+        }
+        
+        .response-section h4 {
+            margin: 0;
+            padding: 12px 16px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #ddd;
+            font-size: 16px;
+            color: #495057;
+        }
+        
+        .headers-section pre {
+            margin: 0;
+            padding: 16px;
+            height: calc(100% - 50px);
+            overflow-y: auto;
+            background-color: #fff;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        
+        .body-section .code-container {
+            height: calc(100% - 50px);
+            border: none;
+            border-radius: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .body-section .code-header {
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        .body-section .code-content {
+            flex: 1;
+            overflow: auto;
+        }
+        
+        /* 语法高亮样式 */
+        .json-string {
+            color: #d14;
+        }
+        
+        .json-number {
+            color: #099;
+        }
+        
+        .json-boolean {
+            color: #0086b3;
+        }
+        
+        .json-null {
+            color: #999;
+        }
+        
+        .json-key {
+            color: #183691;
+            font-weight: bold;
+        }
+        
+        .json-punctuation {
+            color: #333;
+        }
+        
+        .line-numbers {
+            white-space: pre;
+            line-height: 1.4;
+        }
+        /* 两列布局样式 */
+        .body-query-container {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .body-column, .query-column {
+            flex: 1;
+            width: 50%;
+        }
+        
+        .query-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+        
+        .query-key, .query-value {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .remove-query {
+            background: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .remove-query:hover {
+            background: #cc0000;
+        }
+        
+        .add-query {
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        .add-query:hover {
+            background: #0056b3;
+        }
+        
+        .response-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .save-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .save-btn:hover {
+            background: #218838;
+        }
+        
+        .save-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .send-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .send-btn:hover {
+            background: #0056b3;
+        }
+        .header-row {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        .header-row button {
+            margin-left: 10px;
+            padding: 5px 10px;
+            background-color: #f1f1f1;
+            color: #333;
+        }
+        .header-row button:hover {
+            background-color: #e1e1e1;
+        }
+        .url-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .url-row select {
+            width: 5%;
+            min-width: 80px;
+        }
+        .url-row input {
+            flex: 1;
+        }
+        .url-row button {
+            width: 5%;
+            min-width: 100px;
+        }
+        /* 提高优先级，确保覆盖 .url-row input 的样式 */
+        .url-row input.request-name-input {
+            flex: 0 0 120px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="form-group">
+            
+        </div>
+        <form id="apiForm">
+            <div class="form-group">
+                <label>API URL</label>
+                <div class="url-row">
+                    <input type="text" id="request-name" placeholder="请求名称" required style="flex: 0 0 120px; margin-right: 5px;">
+                    <select id="method" required>
+                        <option value="GET">GET</option>
+                        <option value="POST">POST</option>
+                        <option value="PUT">PUT</option>
+                        <option value="DELETE">DELETE</option>
+                        <option value="PATCH">PATCH</option>
+                    </select>
+                    <select id="host-select" required style="min-width: 120px;">
+                        <option value="">选择Host</option>
+                        <option value="custom">自定义</option>
+                    </select>
+                    <input type="text" id="custom-host" placeholder="https://api.example.com" style="display:none;">
+                    <input type="text" id="url" required placeholder="/api/v3/endpoint">
+                    <button type="submit" class="send-btn">发送</button>
+                    <button type="button" id="save-request-btn" class="save-btn" onclick="saveRequest()">保存</button>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Header</label>
+                <div id="headers">
+                    <div class="header-row">
+                        <input type="text" placeholder="名称" class="header-name">
+                        <input type="text" placeholder="值" class="header-value">
+                        <button type="button" class="remove-header">删除</button>
+                    </div>
+                </div>
+                <button type="button" id="add-header">添加请求头</button>
+            </div>
+            
+            <div class="form-group">
+                <label for="auth">认证</label>
+                <select id="auth-type">
+                    <option value="none">无</option>
+                    <option value="basic">Basic Auth</option>
+                    <option value="bearer">Bearer Token</option>
+                </select>
+                <div id="auth-basic" style="display: none; margin-top: 10px;">
+                    <input type="text" id="auth-username" placeholder="用户名">
+                    <input type="password" id="auth-password" placeholder="密码">
+                </div>
+                <div id="auth-bearer" style="display: none; margin-top: 10px;">
+                    <input type="text" id="auth-token" placeholder="Token">
+                </div>
+            </div>
+            
+            <!-- 请求体和查询参数两列布局 -->
+            <div class="form-group">
+                <div class="body-query-container">
+                    <div class="body-column">
+                        <label for="body">Body (JSON)</label>
+                        <textarea id="body" placeholder="{\n  \"key\": \"value\"\n}"></textarea>
+                    </div>
+                    <div class="query-column">
+                        <label for="query-params">Params</label>
+                        <div id="query-params">
+                            <div class="query-row">
+                                <input type="text" placeholder="Key" class="query-key">
+                                <input type="text" placeholder="Value" class="query-value">
+                                <button type="button" class="remove-query" onclick="removeQueryRow(this)">-</button>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 10px; margin-top: 10px;">
+                            <button type="button" class="add-query" onclick="addQueryRow()">添加参数</button>
+                            <button type="button" class="add-query" onclick="showQuickAddDialog()" style="background-color: #1890ff;">快捷添加</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+        
+        <div class="response" id="response-container" style="display: none;">
+            <!-- 第一行：Response标题和状态码 -->
+            <div class="response-row">
+                <div class="response-title">
+                    <h3>Response</h3>
+                    <p><strong>响应时间:</strong> <span id="response-time"></span> ms</p>
+                </div>
+                <div class="response-status">
+                    <span class="status-code" id="status-code"></span>
+                </div>
+            </div>
+            <!-- 第二行：Headers和Body -->
+            <div class="response-content">
+                <div class="response-section headers-section">
+                    <h4>Headers</h4>
+                    <pre id="response-headers"></pre>
+                </div>
+                <div class="response-section body-section">
+                    <h4>Body</h4>
+                    <div class="code-container" id="response-body-container">
+                        <div class="code-header">
+                            <span id="response-body-info">JSON</span>
+                            <div class="code-controls">
+                                <button class="code-btn" onclick="toggleLineNumbers()">行号</button>
+                                <button class="code-btn" onclick="expandAll()">展开全部</button>
+                                <button class="code-btn" onclick="collapseAll()">折叠全部</button>
+                                <button class="code-btn" onclick="copyResponseBody()">复制</button>
+                            </div>
+                        </div>
+                        <div class="code-content">
+                            <div class="line-numbers" id="line-numbers"></div>
+                            <div class="code-text" id="response-body"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+            // 加载项目环境配置
+            loadProjectEnv();
+            // 只有在没有设置过request_info_id时才初始化为null
+            if (typeof window.currentRequestInfoId === 'undefined') {
+                window.currentRequestInfoId = null;
+            }
+        });
+
+        // 监听来自父页面的消息
+        window.addEventListener('message', function(event) {
+            if (event.data.type === 'loadRequestInfo') {
+                loadRequestInfoToForm(event.data.data);
+            } else if (event.data.type === 'newRequest') {
+                newRequest();
+            }
+        });
+
+        // 设置事件监听器
+        function setupEventListeners() {
+            // 认证类型切换
+            document.getElementById('auth-type').addEventListener('change', function() {
+                document.getElementById('auth-basic').style.display = 'none';
+                document.getElementById('auth-bearer').style.display = 'none';
+                
+                if (this.value === 'basic') {
+                    document.getElementById('auth-basic').style.display = 'block';
+                } else if (this.value === 'bearer') {
+                    document.getElementById('auth-bearer').style.display = 'block';
+                }
+            });
+
+            // Host选择器变化事件
+            document.getElementById('host-select').addEventListener('change', function() {
+                const customHostInput = document.getElementById('custom-host');
+                if (this.value === 'custom') {
+                    customHostInput.style.display = 'inline-block';
+                    customHostInput.focus();
+                } else {
+                    customHostInput.style.display = 'none';
+                }
+            });
+
+            // 添加请求头
+            document.getElementById('add-header').addEventListener('click', function() {
+                const headerRow = document.createElement('div');
+                headerRow.className = 'header-row';
+                headerRow.innerHTML = `
+                    <input type="text" placeholder="名称" class="header-name">
+                    <input type="text" placeholder="值" class="header-value">
+                    <button type="button" class="remove-header">删除</button>
+                `;
+                document.getElementById('headers').appendChild(headerRow);
+                
+                // 添加删除按钮事件
+                headerRow.querySelector('.remove-header').addEventListener('click', function() {
+                    headerRow.remove();
+                });
+            });
+
+            // 添加第一个删除按钮事件
+            document.querySelector('.remove-header').addEventListener('click', function() {
+                this.parentElement.remove();
+            });
+
+            // 表单提交事件
+            document.getElementById('apiForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                sendRequest();
+            });
+        }
+
+        // 加载项目环境配置
+        function loadProjectEnv() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const projectId = urlParams.get('project_id');
+            
+            if (!projectId) {
+                console.warn('未找到project_id参数');
+                return;
+            }
+            
+            fetch(`/api/project_env/${projectId}`, {
+                method: 'GET',
+                headers: parent.get_x_token()
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.data) {
+                    const hostSelect = document.getElementById('host-select');
+                    // 清空现有选项（保留默认选项）
+                    while (hostSelect.children.length > 2) {
+                        hostSelect.removeChild(hostSelect.lastChild);
+                    }
+                    const envHosts = data.data.env.host; // 获取 host 对象
+                    // 遍历 envHosts 对象的键值对
+                    for (const key in envHosts) {
+                        if (Object.hasOwnProperty.call(envHosts, key)) { 
+                            const hostValue = envHosts[key]; 
+                            if (hostValue && hostValue.trim()) {
+                                const option = document.createElement('option');
+                                // value 是实际的 URL
+                                option.value = hostValue.trim(); 
+                                option.textContent = formatHostName(key) + ` (${hostValue.trim()})`; 
+                                hostSelect.appendChild(option);
+                            }
+                        }
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('加载项目环境配置失败:', error);
+            });
+        }
+
+        // 获取完整URL
+        function getFullUrl() {
+            const hostSelect = document.getElementById('host-select');
+            const customHostInput = document.getElementById('custom-host');
+            const urlInput = document.getElementById('url');
+            
+            let baseUrl = '';
+            if (hostSelect.value === 'custom') {
+                baseUrl = customHostInput.value.trim();
+            } else if (hostSelect.value) {
+                baseUrl = hostSelect.value;
+            }
+            
+            const path = urlInput.value.trim();
+            
+            // 如果没有选择host，直接返回路径
+            if (!baseUrl) {
+                return path;
+            }
+            
+            // 确保baseUrl不以/结尾，path以/开头
+            baseUrl = baseUrl.replace(/\/$/, '');
+            const finalPath = path.startsWith('/') ? path : '/' + path;
+            
+            return baseUrl + finalPath;
+        }
+
+        // 发送API请求
+        async function sendRequest() {
+            const url = getFullUrl();
+            const method = document.getElementById('method').value;
+            const requestName = document.getElementById('request-name').value;
+            let body = document.getElementById('body').value;
+            
+            // 收集请求头
+            const headers = {};
+            document.querySelectorAll('#headers .header-row').forEach(row => {
+                const name = row.querySelector('.header-name').value;
+                const value = row.querySelector('.header-value').value;
+                if (name && value) {
+                    headers[name] = value;
+                }
+            });
+            
+            // 收集查询参数
+            let queryParams = {};
+            document.querySelectorAll('#query-params .query-row').forEach(row => {
+                const key = row.querySelector('.query-key').value;
+                const value = row.querySelector('.query-value').value;
+                if (key && value) {
+                    queryParams[key] = value;
+                }
+            });
+            // 处理认证
+            const authType = document.getElementById('auth-type').value;
+            let auth = { type: authType };
+            
+            if (authType === 'basic') {
+                const username = document.getElementById('auth-username').value;
+                const password = document.getElementById('auth-password').value;
+                if (username && password) {
+                    headers['Authorization'] = 'Basic ' + btoa(username + ':' + password);
+                    auth.username = username;
+                    auth.password = password;
+                }
+            } else if (authType === 'bearer') {
+                const token = document.getElementById('auth-token').value;
+                if (token) {
+                    headers['Authorization'] = 'Bearer ' + token;
+                    auth.token = token;
+                }
+            }
+            
+            // 显示加载状态
+            document.getElementById('response-container').style.display = 'block';
+            document.getElementById('status-code').textContent = '加载中...';
+            document.getElementById('response-time').textContent = '计算中...';
+            document.getElementById('response-headers').textContent = '';
+            document.getElementById('response-body').textContent = '';
+            
+            // 从URL中获取project_id参数
+            const urlParams = new URLSearchParams(window.location.search);
+            const projectId = urlParams.get('project_id');
+            
+            const requestData = {
+                url: url,
+                method: method,
+                headers: headers,
+                body: body,
+                query: queryParams,
+                auth: auth,
+                request_name: requestName,
+                request_info_id: window.currentRequestInfoId || null,
+                project_id: projectId
+            };
+            
+            // 调试信息：打印当前的request_info_id
+            console.log('发送请求时的request_info_id:', window.currentRequestInfoId);
+            
+            fetch('/api/send-request', {
+                method: 'POST',
+                headers: parent.get_x_token(),
+                body: JSON.stringify(requestData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                // 显示响应
+                displayResponse(data, data.responseTime);
+                
+                // 存储响应数据和请求信息以便保存时使用
+                window.lastRequestData = requestData;
+                window.lastResponseData = data;
+                
+                // 保存按钮现在始终可见
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('status-code').textContent = 'Error';
+                document.getElementById('response-time').textContent = '0';
+                document.getElementById('response-body').textContent = JSON.stringify({error: error.message}, null, 2);
+                
+                // 即使出错也保存按钮仍然可见
+            });
+        }
+        // 辅助函数：根据键名格式化显示名称
+        function formatHostName(key) {
+            switch (key) {
+                case 'dev_host': return '开发环境';
+                case 'monitor_host': return '监控环境';
+                case 'pre_host': return '预发布环境';
+                case 'pro_host': return '生产环境';
+                // 可以添加更多环境类型
+                default: return key.replace(/_host$/, '').toUpperCase() + '环境'; // 移除 _host 后转大写
+            }
+        }
+        // 显示响应
+        function displayResponse(response, responseTime) {
+            const statusCodeElement = document.getElementById('status-code');
+            statusCodeElement.textContent = response.status;
+            
+            // 根据状态码设置样式
+            statusCodeElement.className = 'status-code';
+            if (response.status >= 200 && response.status < 300) {
+                statusCodeElement.classList.add('success');
+            } else if (response.status >= 400) {
+                statusCodeElement.classList.add('error');
+            } else if (response.status >= 300) {
+                statusCodeElement.classList.add('warning');
+            }
+            
+            document.getElementById('response-time').textContent = responseTime;
+            
+            // 显示响应头
+            let headersText = '';
+            for (const [key, value] of Object.entries(response.headers)) {
+                headersText += `${key}: ${value}\n`;
+            }
+            document.getElementById('response-headers').textContent = headersText;
+            
+            // 显示响应体
+            let responseBodyText = '';
+            if (typeof response.body === 'object' && response.body !== null) {
+                // 如果是对象，先转换为JSON字符串再美化
+                responseBodyText = JSON.stringify(response.body, null, 2);
+            } else if (typeof response.body === 'string') {
+                try {
+                    // 尝试解析为JSON并美化
+                    const parsed = JSON.parse(response.body);
+                    responseBodyText = js_beautify(JSON.stringify(parsed), {
+                        indent_size: 2,
+                        max_preserve_newlines: 5,
+                        wrap_line_length: 40,
+                        preserve_newlines: true,
+                        space_before_conditional: true,
+                        unescape_strings: true,
+                        space_in_empty_paren: true
+                    });
+                } catch (e) {
+                    // 如果不是JSON，直接显示原文本
+                    responseBodyText = response.body;
+                }
+            } else {
+                responseBodyText = String(response.body);
+            }
+            // 设置响应体内容并生成行号
+            const responseBodyElement = document.getElementById('response-body');
+            
+            // 检查是否为JSON并应用语法高亮
+            if (typeof response.body === 'object' || (typeof response.body === 'string' && isValidJSON(response.body))) {
+                responseBodyElement.innerHTML = highlightJSON(responseBodyText);
+            } else {
+                responseBodyElement.textContent = responseBodyText;
+            }
+            
+            generateLineNumbers(responseBodyText);
+            addCollapsibleFeatures(responseBodyText);
+            
+            // 更新响应体信息
+            const bodyInfo = document.getElementById('response-body-info');
+            if (typeof response.body === 'object' || (typeof response.body === 'string' && isValidJSON(response.body))) {
+                bodyInfo.textContent = 'JSON';
+            } else {
+                bodyInfo.textContent = 'Text';
+            }
+        }
+
+        // 生成行号
+        function generateLineNumbers(text) {
+            const lines = text.split('\n');
+            const lineNumbersDiv = document.getElementById('line-numbers');
+            let lineNumbersHtml = '';
+            
+            for (let i = 1; i <= lines.length; i++) {
+                lineNumbersHtml += i + '\n';
+            }
+            
+            lineNumbersDiv.textContent = lineNumbersHtml;
+        }
+        
+        // 添加折叠功能
+        function addCollapsibleFeatures(text) {
+            const responseBody = document.getElementById('response-body');
+            
+            // 如果已经是HTML内容（有语法高亮），则不重新处理
+            if (responseBody.innerHTML.includes('<span class=')) {
+                // 为已有的HTML内容添加折叠功能
+                const lines = responseBody.innerHTML.split('\n');
+                let html = '';
+                
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i];
+                    const plainText = line.replace(/<[^>]*>/g, ''); // 移除HTML标签获取纯文本
+                    const trimmedLine = plainText.trim();
+                    
+                    // 检查是否是可折叠的行（包含 { 或 [）
+                    if (trimmedLine.includes('{') || trimmedLine.includes('[')) {
+                        html += `<div class="collapsible-line" onclick="toggleCollapse(this)">${line}</div>`;
+                    } else {
+                        html += `<div>${line}</div>`;
+                    }
+                }
+                
+                responseBody.innerHTML = html;
+            } else {
+                // 处理纯文本内容
+                const lines = text.split('\n');
+                let html = '';
+                
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i];
+                    const trimmedLine = line.trim();
+                    
+                    // 检查是否是可折叠的行（包含 { 或 [）
+                    if (trimmedLine.includes('{') || trimmedLine.includes('[')) {
+                        html += `<div class="collapsible-line" onclick="toggleCollapse(this)">${line}</div>`;
+                    } else {
+                        html += `<div>${line}</div>`;
+                    }
+                }
+                
+                responseBody.innerHTML = html;
+            }
+        }
+        
+        // 切换折叠状态
+        function toggleCollapse(element) {
+            element.classList.toggle('collapsed');
+            let nextElement = element.nextElementSibling;
+            
+            while (nextElement && !nextElement.classList.contains('collapsible-line')) {
+                nextElement.classList.toggle('collapsed-content');
+                nextElement = nextElement.nextElementSibling;
+            }
+        }
+        
+        // 切换行号显示
+        function toggleLineNumbers() {
+            const lineNumbers = document.getElementById('line-numbers');
+            lineNumbers.style.display = lineNumbers.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        // 展开全部
+        function expandAll() {
+            const collapsibleLines = document.querySelectorAll('.collapsible-line');
+            const collapsedContent = document.querySelectorAll('.collapsed-content');
+            
+            collapsibleLines.forEach(line => line.classList.remove('collapsed'));
+            collapsedContent.forEach(content => content.classList.remove('collapsed-content'));
+        }
+        
+        // 折叠全部
+        function collapseAll() {
+            const collapsibleLines = document.querySelectorAll('.collapsible-line');
+            collapsibleLines.forEach(line => {
+                line.classList.add('collapsed');
+                let nextElement = line.nextElementSibling;
+                while (nextElement && !nextElement.classList.contains('collapsible-line')) {
+                    nextElement.classList.add('collapsed-content');
+                    nextElement = nextElement.nextElementSibling;
+                }
+            });
+        }
+        
+        // 复制响应体内容
+        function copyResponseBody() {
+            const responseBody = document.getElementById('response-body');
+            const text = responseBody.textContent || responseBody.innerText;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                // 临时显示复制成功提示
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = '已复制';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 1000);
+            }).catch(err => {
+                console.error('复制失败:', err);
+            });
+        }
+        
+        // 检查是否为有效JSON
+        function isValidJSON(str) {
+            try {
+                JSON.parse(str);
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }
+        
+        // JSON语法高亮函数
+        function highlightJSON(jsonString) {
+            // 转义HTML特殊字符
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+            
+            // 对JSON字符串进行语法高亮
+            return jsonString.replace(
+                /"(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g,
+                function(match) {
+                    let cls = 'json-number';
+                    if (/^"/.test(match)) {
+                        if (/:$/.test(match)) {
+                            cls = 'json-key';
+                        } else {
+                            cls = 'json-string';
+                        }
+                    } else if (/true|false/.test(match)) {
+                        cls = 'json-boolean';
+                    } else if (/null/.test(match)) {
+                        cls = 'json-null';
+                    }
+                    return '<span class="' + cls + '">' + escapeHtml(match) + '</span>';
+                }
+            ).replace(/([{}\[\],])/g, '<span class="json-punctuation">$1</span>');
+        }
+        
+        // 从请求信息加载到表单
+        function loadRequestInfoToForm(item) {
+            // 处理URL - 如果是完整URL，提取路径部分
+            let urlPath = item.url || '';
+            if (urlPath.match(/^https?:\/\//)) {
+                // 使用正则表达式提取路径部分
+                const urlMatch = urlPath.match(/^https?:\/\/[^\/]+(.*)$/);
+                if (urlMatch && urlMatch[1]) {
+                    urlPath = urlMatch[1];
+                } else {
+                    urlPath = '/';
+                }
+            }
+            
+            document.getElementById('url').value = urlPath;
+            document.getElementById('method').value = item.method;
+            document.getElementById('request-name').value = item.request_name || '';
+            document.getElementById('body').value = item.body || '';
+            
+            // 设置当前请求的ID，用于后续发送请求时记录历史
+            window.currentRequestInfoId = item.id;
+            
+            
+            // 清空现有请求头
+            const headersContainer = document.getElementById('headers');
+            headersContainer.innerHTML = '';
+            
+            // 添加请求头
+            if (item.headers) {
+                const headers = typeof item.headers === 'string' ? JSON.parse(item.headers) : item.headers;
+                const auth = item.auth ? (typeof item.auth === 'string' ? JSON.parse(item.auth) : item.auth) : { type: 'none' };
+                
+                for (const [name, value] of Object.entries(headers)) {
+                    // 只有当认证类型不是 'none' 时才跳过 Authorization 头
+                    // 如果认证类型是 'none' 但存在 Authorization 头，则应该显示在请求头中
+                    if (name.toLowerCase() === 'authorization' && auth.type !== 'none') continue;
+                    
+                    const headerRow = document.createElement('div');
+                    headerRow.className = 'header-row';
+                    headerRow.innerHTML = `
+                        <input type="text" placeholder="名称" class="header-name" value="${name}">
+                        <input type="text" placeholder="值" class="header-value" value="${value}">
+                        <button type="button" class="remove-header">删除</button>
+                    `;
+                    headersContainer.appendChild(headerRow);
+                    
+                    // 添加删除按钮事件
+                    headerRow.querySelector('.remove-header').addEventListener('click', function() {
+                        headerRow.remove();
+                    });
+                }
+            }
+            
+            // 如果没有请求头，添加一个空行
+            if (headersContainer.children.length === 0) {
+                const headerRow = document.createElement('div');
+                headerRow.className = 'header-row';
+                headerRow.innerHTML = `
+                    <input type="text" placeholder="名称" class="header-name">
+                    <input type="text" placeholder="值" class="header-value">
+                    <button type="button" class="remove-header">删除</button>
+                `;
+                headersContainer.appendChild(headerRow);
+                
+                // 添加删除按钮事件
+                headerRow.querySelector('.remove-header').addEventListener('click', function() {
+                    headerRow.remove();
+                });
+            }
+            
+            // 清空并加载查询参数
+            const queryParamsContainer = document.getElementById('query-params');
+            queryParamsContainer.innerHTML = '';
+            
+            if (item.query) {
+                const queryParams = typeof item.query === 'string' ? JSON.parse(item.query) : item.query;
+                for (const [key, value] of Object.entries(queryParams)) {
+                    const queryRow = document.createElement('div');
+                    queryRow.className = 'query-row';
+                    queryRow.innerHTML = `
+                        <input type="text" placeholder="Key" class="query-key" value="${key}">
+                        <input type="text" placeholder="Value" class="query-value" value="${value}">
+                        <button type="button" class="remove-query" onclick="removeQueryRow(this)">-</button>
+                    `;
+                    queryParamsContainer.appendChild(queryRow);
+                }
+            }
+            
+            // 如果没有查询参数，添加一个空行
+            if (queryParamsContainer.children.length === 0) {
+                const queryRow = document.createElement('div');
+                queryRow.className = 'query-row';
+                queryRow.innerHTML = `
+                    <input type="text" placeholder="Key" class="query-key">
+                    <input type="text" placeholder="Value" class="query-value">
+                    <button type="button" class="remove-query" onclick="removeQueryRow(this)">-</button>
+                `;
+                queryParamsContainer.appendChild(queryRow);
+            }
+            
+            // 加载认证信息
+            if (item.auth) {
+                const auth = typeof item.auth === 'string' ? JSON.parse(item.auth) : item.auth;
+                const authType = auth.type || 'none';
+                document.getElementById('auth-type').value = authType;
+                
+                // 触发认证类型变化事件以显示相应的输入框
+                const authTypeSelect = document.getElementById('auth-type');
+                const event = new Event('change');
+                authTypeSelect.dispatchEvent(event);
+                
+                // 填充认证数据
+                if (authType === 'basic' && auth.username && auth.password) {
+                    document.getElementById('auth-username').value = auth.username;
+                    document.getElementById('auth-password').value = auth.password;
+                } else if (authType === 'bearer' && auth.token) {
+                    document.getElementById('auth-token').value = auth.token;
+                }
+            } else {
+                // 重置认证为无
+                document.getElementById('auth-type').value = 'none';
+                const authTypeSelect = document.getElementById('auth-type');
+                const event = new Event('change');
+                authTypeSelect.dispatchEvent(event);
+            }
+            
+            // 隐藏响应容器
+            document.getElementById('response-container').style.display = 'none';
+        }
+        
+        // 添加查询参数行
+        function addQueryRow() {
+            const queryParams = document.getElementById('query-params');
+            const queryRow = document.createElement('div');
+            queryRow.className = 'query-row';
+            queryRow.innerHTML = `
+                <input type="text" placeholder="Key" class="query-key">
+                <input type="text" placeholder="Value" class="query-value">
+                <button type="button" class="remove-query" onclick="removeQueryRow(this)">-</button>
+            `;
+            queryParams.appendChild(queryRow);
+        }
+        
+        // 删除查询参数行
+        function removeQueryRow(button) {
+            const queryParams = document.getElementById('query-params');
+            if (queryParams.children.length > 1) {
+                button.parentElement.remove();
+            }
+        }
+        
+        // 保存请求
+        function saveRequest() {
+            const requestName = document.getElementById('request-name').value.trim();
+            if (!requestName) {
+                alert('请输入请求名称');
+                return;
+            }
+            
+            const saveBtn = document.getElementById('save-request-btn');
+            saveBtn.disabled = true;            
+            // 收集当前表单数据
+            // 收集请求头
+            const headers = {};
+            document.querySelectorAll('#headers .header-row').forEach(row => {
+                const name = row.querySelector('.header-name').value;
+                const value = row.querySelector('.header-value').value;
+                if (name && value) {
+                    headers[name] = value;
+                }
+            });
+            
+            // 收集查询参数
+            const queryParams = {};
+            document.querySelectorAll('#query-params .query-row').forEach(row => {
+                const key = row.querySelector('.query-key').value;
+                const value = row.querySelector('.query-value').value;
+                if (key && value) {
+                    queryParams[key] = value;
+                }
+            });
+            
+            // 处理认证
+            const authType = document.getElementById('auth-type').value;
+            let auth = { type: authType };
+            
+            if (authType === 'basic') {
+                const username = document.getElementById('auth-username').value;
+                const password = document.getElementById('auth-password').value;
+                if (username && password) {
+                    auth.username = username;
+                    auth.password = password;
+                }
+            } else if (authType === 'bearer') {
+                const token = document.getElementById('auth-token').value;
+                if (token) {
+                    auth.token = token;
+                }
+            }
+            // 构建请求数据
+            // 从URL中获取project_id参数
+            const urlParams = new URLSearchParams(window.location.search);
+            const projectId = urlParams.get('project_id');
+            
+            // 获取URL路径（只保存路径部分，不包含host）
+            const urlPath = document.getElementById('url').value.trim();
+            
+            const requestData = {
+                url: urlPath,
+                method: document.getElementById('method').value,
+                headers: headers,
+                body: document.getElementById('body').value,
+                query: queryParams,
+                auth: auth,
+                request_name: requestName,
+                request_info_id: window.currentRequestInfoId || null,
+                project_id: projectId
+            };
+            
+            // 发送保存请求
+            
+            fetch('/api/save-request-info', {
+                method: 'POST',
+                headers: parent.get_x_token(),
+                body: JSON.stringify(requestData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                saveBtn.disabled = false;
+                if (data.success) {
+                    
+                    // 记录request_info_id，用于后续发送请求时记录历史
+                    window.currentRequestInfoId = data.request_info_id;
+                    console.log('保存请求成功，设置request_info_id为:', data.request_info_id);
+                    
+                    // 通知父窗口重新获取request-info列表
+                    window.parent.postMessage({
+                        type: 'requestSaved',
+                        requestId: data.request_info_id
+                    }, '*');
+                    
+                    alert('请求已成功保存！');
+                } else {
+                    if (data.error && data.error.includes('冲突')) {
+                        alert('请求名称已存在，请使用不同的名称');
+                    } else {
+                        alert('保存失败: ' + (data.error || '未知错误'));
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('保存失败:', error);
+                saveBtn.disabled = false;
+                saveBtn.textContent = '保存';
+                alert('保存失败: ' + error.message);
+            });
+        }
+
+        // 新建请求函数
+        function newRequest() {
+            // 清空表单
+            document.getElementById('apiForm').reset();
+            
+            // 清空请求名称
+            document.getElementById('request-name').value = '';
+            
+            // 重置currentRequestInfoId
+            window.currentRequestInfoId = null;
+            
+            // 清空请求头容器
+            const headersContainer = document.getElementById('headers');
+            headersContainer.innerHTML = '';
+            
+            // 添加一个空的请求头行
+            const headerRow = document.createElement('div');
+            headerRow.className = 'header-row';
+            headerRow.innerHTML = `
+                <input type="text" placeholder="名称" class="header-name">
+                <input type="text" placeholder="值" class="header-value">
+                <button type="button" class="remove-header">删除</button>
+            `;
+            headersContainer.appendChild(headerRow);
+            
+            // 添加删除按钮事件
+            headerRow.querySelector('.remove-header').addEventListener('click', function() {
+                headerRow.remove();
+            });
+            
+            // 清空查询参数容器
+            const queryParamsContainer = document.getElementById('query-params');
+            queryParamsContainer.innerHTML = '';
+            
+            // 添加一个空的查询参数行
+            const queryRow = document.createElement('div');
+            queryRow.className = 'query-row';
+            queryRow.innerHTML = `
+                <input type="text" placeholder="Key" class="query-key">
+                <input type="text" placeholder="Value" class="query-value">
+                <button type="button" class="remove-query" onclick="removeQueryRow(this)">-</button>
+            `;
+            queryParamsContainer.appendChild(queryRow);
+            
+            // 重置认证类型
+            document.getElementById('auth-type').value = 'none';
+            document.getElementById('auth-basic').style.display = 'none';
+            document.getElementById('auth-bearer').style.display = 'none';
+            
+            // 隐藏响应区域
+            document.getElementById('response-container').style.display = 'none';
+            
+            alert('已创建新请求，可以开始输入新的API信息');
+        }
+
+        // 显示快捷添加对话框
+        function showQuickAddDialog() {
+            document.getElementById('quick-add-dialog').style.display = 'block';
+            document.getElementById('quick-add-overlay').style.display = 'block';
+        }
+
+        // 隐藏快捷添加对话框
+        function hideQuickAddDialog() {
+            document.getElementById('quick-add-dialog').style.display = 'none';
+            document.getElementById('quick-add-overlay').style.display = 'none';
+            document.getElementById('quick-add-input').value = '';
+        }
+
+        // 解析并添加参数
+        function parseAndAddParams() {
+            const input = document.getElementById('quick-add-input').value.trim();
+            if (!input) {
+                alert('请输入参数字符串');
+                return;
+            }
+
+            let paramString = input;
+            // 如果以?开头，去掉?
+            if (paramString.startsWith('?')) {
+                paramString = paramString.substring(1);
+            }
+
+            // 解析参数
+            const params = new URLSearchParams(paramString);
+            const queryParamsContainer = document.getElementById('query-params');
+
+            // 清空现有的空参数行
+            const emptyRows = queryParamsContainer.querySelectorAll('.query-row');
+            emptyRows.forEach(row => {
+                const keyInput = row.querySelector('.query-key');
+                const valueInput = row.querySelector('.query-value');
+                if (!keyInput.value && !valueInput.value) {
+                    row.remove();
+                }
+            });
+
+            // 添加解析出的参数
+            params.forEach((value, key) => {
+                const queryRow = document.createElement('div');
+                queryRow.className = 'query-row';
+                queryRow.innerHTML = `
+                    <input type="text" placeholder="Key" class="query-key" value="${key}">
+                    <input type="text" placeholder="Value" class="query-value" value="${decodeURIComponent(value)}">
+                    <button type="button" class="remove-query" onclick="removeQueryRow(this)">-</button>
+                `;
+                queryParamsContainer.appendChild(queryRow);
+            });
+
+            // 添加一个空行供继续添加
+            addQueryRow();
+
+            hideQuickAddDialog();
+            alert(`成功添加了 ${params.size} 个参数`);
+        }
+    </script>
+
+    <!-- 快捷添加参数对话框 -->
+    <div id="quick-add-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1000;" onclick="hideQuickAddDialog()"></div>
+    <div id="quick-add-dialog" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 1001; min-width: 400px;">
+        <h3 style="margin-top: 0; color: #333;">快捷添加参数</h3>
+        <p style="color: #666; margin-bottom: 15px;">支持格式：<br>
+        • param1=value1&amp;param2=value2<br>
+        • ?a=1&b=2&c=3</p>
+        <textarea id="quick-add-input" placeholder="请输入参数字符串，例如：a=1&b=2&c=3" style="width: 100%; height: 100px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; resize: vertical; font-family: monospace;"></textarea>
+        <div style="margin-top: 15px; text-align: right;">
+            <button type="button" onclick="hideQuickAddDialog()" style="margin-right: 10px; padding: 8px 16px; border: 1px solid #ddd; background: #c2c2c2; border-radius: 4px; cursor: pointer;">取消</button>
+            <button type="button" onclick="parseAndAddParams()" style="padding: 8px 16px; background: #1890ff; color: white; border: none; border-radius: 4px; cursor: pointer;">解析并添加</button>
+        </div>
+    </div>
+
+</body>
+</html>

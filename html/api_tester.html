@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API工具</title>
+    <script src="/js/xapi_tool.js"></script>
+    <link rel="stylesheet" href="../js/layui@2.11.5/layui.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background-color: #333;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .sidebar-toggle {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 3px;
+            display: none;
+        }
+        
+        .sidebar-toggle:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 20px;
+        }
+        
+        .back-btn {
+            background-color: #667eea;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .back-btn:hover {
+            background-color: #5a6fd8;
+        }
+        
+        .project-info {
+            font-size: 14px;
+            color: #ccc;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .user-info span {
+            font-size: 14px;
+        }
+        
+        .user-role {
+            background-color: #667eea;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        
+        .logout-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .logout-btn:hover {
+            background: #c82333;
+        }
+
+        .admin-controls {
+            margin-right: 15px;
+        }
+
+        .admin-btn {
+            background: #28a745;
+            color: white;
+            padding: 8px 16px;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .admin-btn:hover {
+            background: #218838;
+        }
+        
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+        .sidebar {
+            width: 220px;
+            background-color: #f0f0f0;
+            border-right: 1px solid #ddd;
+            height: 100vh;
+            overflow-y: auto;
+            padding: 15px;
+            box-sizing: border-box;
+            transition: transform 0.3s ease;
+            position: relative;
+            z-index: 1000;
+        }
+        
+        .sidebar.collapsed {
+            transform: translateX(-100%);
+        }
+        
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+        
+        .sidebar-overlay.active {
+            display: block;
+        }
+        
+        .request-item {
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .request-item-content {
+            flex: 1;
+        }
+        
+        .request-item-actions {
+            display: flex;
+            gap: 4px;
+            opacity: 0;
+            transition: opacity 0.2s;
+            margin-left: auto;
+        }
+        
+        .request-item:hover .request-item-actions {
+            opacity: 1;
+        }
+        
+        .request-item-actions i {
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 2px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .main-content {
+            flex: 1;
+            padding: 0px;
+            overflow-y: auto;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], select, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        textarea {
+            min-height: 100px;
+            font-family: monospace;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .response {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            overflow-x: auto;
+        }
+        .response pre {
+            margin: 0;
+            white-space: pre-wrap;
+        }
+        .request-item {
+            background-color: #ffffff;
+            padding: 5px;
+            margin-bottom: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 1px solid #e0e0e0;
+            font-size: 0.9em;
+        }
+        .request-item:hover {
+            background-color: #f0f0f0;
+            border-color: #ccc;
+        }
+        .request-item.selected {
+            background-color: #e0e0e0;
+            border-color: #999;
+        }
+        .request-item.selected:hover {
+            background-color: #d0d0d0;
+        }
+        .sidebar-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #ddd;
+        }
+        .sidebar-section {
+            margin-bottom: 20px;
+        }
+        .status-success {
+            color: #4CAF50;
+        }
+        .status-error {
+            color: #f44336;
+        }
+        .status-warning {
+            color: #ff9800;
+        }
+        .empty-message {
+            color: #999;
+            font-style: italic;
+            text-align: center;
+            padding: 15px 0;
+        }
+        /* 响应式布局 */
+        @media (max-width: 768px) {
+            .sidebar-toggle {
+                display: block;
+            }
+            
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 280px;
+                height: 100vh;
+                z-index: 1000;
+                transform: translateX(-100%);
+                box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                width: 100%;
+                margin-left: 0;
+            }
+        }
+        
+        @media (min-width: 769px) {
+            .sidebar {
+                transform: translateX(0) !important;
+            }
+            
+            .sidebar-overlay {
+                display: none !important;
+            }
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #f1f1f1;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            margin-right: 5px;
+            border-radius: 4px 4px 0 0;
+        }
+        .tab.active {
+            background-color: white;
+            border-bottom: 1px solid white;
+            margin-bottom: -1px;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        /* 两列布局样式 */
+        .body-query-container {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .body-column, .query-column {
+            flex: 1;
+            width: 50%;
+        }
+        
+        .query-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+        
+        .query-key, .query-value {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .remove-query {
+            background: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .remove-query:hover {
+            background: #cc0000;
+        }
+        
+        .add-query {
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        .add-query:hover {
+            background: #0056b3;
+        }
+        .header-row {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        .header-row button {
+            margin-left: 10px;
+            padding: 5px 10px;
+            background-color: #f1f1f1;
+            color: #333;
+        }
+        .header-row button:hover {
+            background-color: #e1e1e1;
+        }
+        .url-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .url-row select {
+            width: 5%;
+            min-width: 80px;
+        }
+        .url-row input {
+            flex: 1;
+        }
+        .url-row button {
+            width: 5%;
+            min-width: 100px;
+        }
+        /* 提高优先级，确保覆盖 .url-row input 的样式 */
+        .url-row input.request-name-input {
+            flex: 0 0 120px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-left">
+            <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">
+                ☰
+            </button>
+            <a href="project_list.html" class="back-btn" id="backBtn" style="display: none;">
+                ← 返回项目列表
+            </a>
+            <h1>API测试工具</h1>
+            <div class="project-info" id="projectInfo" style="display: none;"></div>
+        </div>
+        <div class="user-info">
+            <span id="username">未登录</span>
+            <span class="user-role" id="userRole">guest</span>
+            <div class="admin-controls" id="adminControls" style="display: none;">
+                <!-- 权限管理页面已删除 -->
+            </div>
+            <button class="logout-btn" id="logoutBtn" onclick="logout()">登出</button>
+        </div>
+    </div>
+    
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+    
+    <div class="main-wrapper">
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-title" style="display: flex; justify-content: space-between; align-items: center;">API请求信息 <span id="add-request-btn" onclick="addNewRequest()" style="color: #2196F3; cursor: pointer; font-size: 18px; font-weight: bold;">+</span></div>
+                <div id="request-list"></div>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="container">
+                <h3>API工具</h3>
+                
+                <!-- Tab导航 -->
+                <div class="tabs">
+                    <div class="tab active" onclick="switchTab('api-tool')">API工具</div>
+                    <div class="tab" onclick="switchTab('history')">历史记录</div>
+                    <div class="tab" onclick="switchTab('advanced-config')">高级配置</div>
+                </div>
+                
+                <!-- Tab内容区域 -->
+                <div class="tab-content" id="api-tool" style="display: block;">
+                    <iframe id="api-tool-iframe" style="width: 100%; height: 750px; border: none;"></iframe>
+                </div>
+                <div class="tab-content" id="history" style="display: none;">
+                    <iframe id="history-iframe"  style="width: 100%; height: 750px; border: none;"></iframe>
+                </div>
+                <div class="tab-content" id="advanced-config" style="display: none;">
+                    <iframe id="advanced-config-iframe" style="width: 100%; height: 750px; border: none;"></iframe>
+                </div>
+        </div>
+    </div>
+    </div>
+
+    <script>
+        // 全局用户信息
+        let currentUser = null;
+        
+        // 检查用户登录状态
+        function checkUserLogin() {
+            if(!checkAuth()){
+                return;
+            }
+            const userStr = localStorage.getItem('user');
+            if (!userStr) {
+                // 未登录，跳转到登录页面
+                window.location.href = 'login.html';
+                return false;
+            }
+            try {
+                currentUser = JSON.parse(userStr);
+                // 显示用户信息
+                document.getElementById('username').textContent = currentUser.username;
+                document.getElementById('userRole').textContent = currentUser.role === 'admin' ? '管理员' : '普通用户';
+            
+                // 如果是管理员，显示管理控制按钮
+                if (currentUser.role === 'admin') {
+                    document.getElementById('adminControls').style.display = 'block';
+                }
+                return true;
+            } catch (error) {
+                console.error('解析用户信息失败:', error);
+                localStorage.removeItem('user');
+                window.location.href = 'login.html';
+                return false;
+            }
+        }
+        
+        // 发送请求函数
+        async function sendRequest() {
+            const url = document.getElementById('url').value;
+            const method = document.getElementById('method').value;
+            const headers = parseHeaders();
+            const body = document.getElementById('body').value;
+            const requestName = document.getElementById('request-name').value;
+            
+            if (!url) {
+                alert('请输入URL');
+                return;
+            }
+            
+            if (!currentUser) {
+                alert('用户未登录');
+                return;
+            }
+            
+            const requestData = {
+                url: url,
+                method: method,
+                headers: headers,
+                body: body,
+                request_name: requestName,
+                user_id: currentUser.id
+            };
+            
+            // 这里可以继续添加发送请求的逻辑
+        }
+        
+        // 登出功能
+        function logout() {
+            localStorage.removeItem('user');
+            localStorage.removeItem('token');
+            window.location.href = 'login.html';
+        }
+        
+        // 获取URL参数
+        function getUrlParameter(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+        
+        // 加载项目信息
+        async function loadProjectInfo(projectId) {
+            try {
+                const response = await fetch(`/api/projects/${projectId}`, {
+                    headers: get_x_token()
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    const projectInfo = document.getElementById('projectInfo');
+                    const backBtn = document.getElementById('backBtn');
+                    const sidebarTitle = document.querySelector('.sidebar-title');
+                    
+                    projectInfo.textContent = `项目: ${data.project.name}`;
+                    projectInfo.style.display = 'block';
+                    backBtn.style.display = 'inline-flex';
+                    
+                    // 更新侧边栏标题，将"API请求信息"替换为项目名称
+                    if (sidebarTitle) {
+                        sidebarTitle.innerHTML = `${data.project.name} <span id="add-request-btn" onclick="addNewRequest()" style="color: #2196F3; cursor: pointer; font-size: 18px; font-weight: bold;">+</span>`;
+                    }
+                } else {
+                    console.error('加载项目信息失败:', data.error);
+                }
+            } catch (error) {
+                console.error('加载项目信息时发生错误:', error);
+            }
+        }
+        
+        // 页面加载时检查登录状态并初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!checkUserLogin()) {
+                return;
+            }
+            
+            // 检查是否有项目ID参数
+            const projectId = getUrlParameter('project_id');
+            const apiToolIframe = document.getElementById('api-tool-iframe');
+            const advancedConfigIframe = document.getElementById('advanced-config-iframe');
+            const historyIframe = document.getElementById('history-iframe');
+            if (projectId) {
+                // 设置带 project_id 的 src
+                apiToolIframe.src = `api_tool_content.html?project_id=${projectId}`;
+                advancedConfigIframe.src = `advanced_config_content.html?project_id=${projectId}`;
+                historyIframe.src = `history_content.html?project_id=${projectId}`;
+                loadProjectInfo(projectId);
+            } else {
+                // 设置默认 src
+                apiToolIframe.src = 'api_tool_content.html';
+                advancedConfigIframe.src = 'advanced_config_content.html';
+                historyIframe.src = 'history_content.html';
+            }
+            
+            // 清空缓存
+            sessionStorage.removeItem('selectedRequestItem');
+            // 登录成功后加载请求列表
+            loadRequestList();
+        });
+
+        // 监听来自iframe的消息
+        window.addEventListener('message', function(event) {
+            if (event.data.type === 'loadRequestHistory') {
+                // 切换到History
+                switchTab('history');
+            } else if (event.data.type === 'switchToApiTool') {
+                // 切换到API工具tab并加载数据
+                switchTab('api-tool');
+            } else if (event.data.type === 'requestSaved') {
+                // 请求保存成功，重新获取request-info列表
+                loadRequestList();
+                
+                // 根据保存的requestId重新定位到侧边栏对应的请求项
+                const savedRequestId = event.data.requestId;
+                if (savedRequestId) {
+                    // 等待请求列表加载完成后，查找并选中对应的请求项
+                    setTimeout(() => {
+                        const requestItems = document.querySelectorAll('.request-item');
+                        for (let item of requestItems) {
+                            if (item.dataset.id == savedRequestId) {
+                                // 模拟点击该请求项
+                                item.click();
+                                break;
+                            }
+                        }
+                    }, 100);
+                }
+            }
+        });
+
+        // 获取当前活跃的tab
+        function getCurrentActiveTab() {
+            // 检查哪个tab-content是可见的
+            const tabContents = document.querySelectorAll('.tab-content');
+            for (let tab of tabContents) {
+                const computedStyle = window.getComputedStyle(tab);
+                if (computedStyle.display === 'block') {
+                    console.log('当前活跃tab (通过display检测):', tab.id);
+                    return tab.id;
+                }
+            }
+            // 如果都没有显示，检查active类
+            const activeTabContent = document.querySelector('.tab-content.active');
+            if (activeTabContent) {
+                console.log('当前活跃tab (通过active类检测):', activeTabContent.id);
+                return activeTabContent.id;
+            }
+            console.log('当前活跃tab (默认值): api-tool');
+            return 'api-tool'; // 默认返回api-tool
+        }
+
+        function switchTab(tabId) {
+            const projectId = getUrlParameter('project_id');
+            // 隐藏所有tab内容
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.style.display = 'none';
+                tab.classList.remove('active');
+            });
+            
+            // 移除所有tab的active状态
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // 显示选中的tab内容
+            const selectedTab = document.getElementById(tabId);
+            if (selectedTab) {
+                selectedTab.style.display = 'block';
+                selectedTab.classList.add('active');
+            }
+            
+            // 设置对应tab为active
+            const activeTab = document.querySelector(`.tab[onclick="switchTab('${tabId}')"]`);
+            if (activeTab) {
+                activeTab.classList.add('active');
+            }
+            // 从缓存获取数据
+            const cachedItem = sessionStorage.getItem('selectedRequestItem');
+            const item = cachedItem ? JSON.parse(cachedItem) : null;
+            console.log('从缓存获取数据ID:', item ? item.id : 'null');
+            // 如果切换到历史记录tab，刷新历史记录
+            if (tabId === 'history') {
+                const historyIframe = document.getElementById('history-iframe');
+                if (historyIframe) {
+                    if (item) {
+                        historyIframe.contentWindow.postMessage({
+                                type: 'loadRequestHistory',
+                                requestId: item.id,
+                                projectId: projectId
+                            }, '*');
+                    } else {
+                        historyIframe.contentWindow.postMessage({ type: 'loadRequestHistory' }, '*');
+                    }
+                }
+            }
+            if (tabId === 'api-tool') {
+                const apiToolIframe = document.getElementById('api-tool-iframe');
+                if (apiToolIframe) {
+                    if (item) {
+                        apiToolIframe.contentWindow.postMessage({
+                            type: 'loadRequestInfo',
+                            data: item,
+                            projectId: projectId
+                        }, '*');
+                    } else {
+                        apiToolIframe.contentWindow.postMessage({ type: 'loadRequestInfo' }, '*');
+                    }
+                }
+            }
+            if (tabId === 'advanced-config') {
+                const advancedConfigIframe = document.getElementById('advanced-config-iframe');
+                if (advancedConfigIframe) {
+                    if (item) {
+                        advancedConfigIframe.contentWindow.postMessage({
+                            type: 'loadRequestInfo',
+                            requestId: item.id,
+                            projectId: projectId
+                        }, '*');
+                    } else {
+                        advancedConfigIframe.contentWindow.postMessage({ type: 'loadRequestInfo' }, '*');
+                    }
+                }
+            }
+        }
+
+        // 加载请求列表（基于用户权限和项目ID）
+        async function loadRequestList() {
+            if (!currentUser) {
+                console.error('用户未登录');
+                return;
+            }
+            
+            try {
+                // 检查是否有项目ID参数
+                const projectId = getUrlParameter('project_id');
+                let url = '/api/request-info';
+                
+                // 如果有项目ID，使用项目相关的API
+                if (projectId) {
+                    url = `/api/projects/${projectId}/requests`;
+                }
+                
+                const response = await fetch(url ,{
+                    headers: get_x_token()
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    const requestList = document.getElementById('request-list');
+                    requestList.innerHTML = '';
+                    
+                    data.data.forEach(request => {
+                        addRequestInfoItem(request);
+                    });
+                    
+                    // 如果没有请求信息，显示提示信息
+                    if (data.data.length === 0) {
+                        requestList.innerHTML = '<div class="empty-message">暂无保存的请求</div>';
+                    }
+                } else {
+                    console.error('加载请求列表失败:', data.error);
+                    const requestList = document.getElementById('request-list');
+                    requestList.innerHTML = '<div class="empty-message">加载请求列表失败</div>';
+                }
+            } catch (error) {
+                console.error('加载请求列表时发生错误:', error);
+                const requestList = document.getElementById('request-list');
+                requestList.innerHTML = '<div class="empty-message">加载请求列表失败</div>';
+            }
+        }
+
+        // 添加请求信息项到列表
+        function addRequestInfoItem(item) {
+            const requestList = document.getElementById('request-list');
+            
+            const requestItem = document.createElement('div');
+            requestItem.className = 'request-item';
+            requestItem.dataset.id = item.id;
+            
+            const date = new Date(item.timestamp);
+            const formattedDate = `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+            
+            // 使用请求名称，如果没有则显示默认名称
+            const displayName = item.request_name || '未命名请求';
+                        
+            requestItem.innerHTML = `
+                <div class="request-item-content">
+                    <strong>${displayName}</strong>
+                </div>
+                <div class="request-item-actions">
+                    <i class="layui-icon layui-icon-file" onclick="copyRequest(event, ${item.id})" title="复制请求"></i>
+                    <i class="layui-icon layui-icon-delete" onclick="deleteRequest(event, ${item.id})" title="删除请求"></i>
+                </div>
+            `;
+            
+            requestItem.addEventListener('click', function() {
+                // 移除所有request-item的选中状态
+                document.querySelectorAll('.request-item').forEach(item => {
+                    item.classList.remove('selected');
+                });
+                // 检查是否有项目ID参数
+                const projectId = getUrlParameter('project_id');
+                // 为当前点击的item添加选中状态
+                requestItem.classList.add('selected');
+                
+                // 获取当前活跃的tab
+                const currentActiveTab = getCurrentActiveTab();
+                console.log('点击requestItem时的当前活跃tab:', currentActiveTab);
+                
+                // 将item数据保存到浏览器缓存
+                sessionStorage.setItem('selectedRequestItem', JSON.stringify(item));
+                
+                // 只刷新当前活跃tab的数据
+                if (currentActiveTab === 'api-tool') {
+                    // 如果当前在API工具tab，刷新API工具iframe
+                    const apiToolIframe = document.getElementById('api-tool-iframe');
+                    if (apiToolIframe) {
+                        apiToolIframe.contentWindow.postMessage({
+                            type: 'loadRequestInfo',
+                            data: item,
+                            projectId: projectId
+                        }, '*');
+                    }
+                    
+                } else if (currentActiveTab === 'history') {
+                    // 如果当前在历史记录tab，刷新历史记录iframe
+                    const historyIframe = document.getElementById('history-iframe');
+                    if (historyIframe) {
+                        historyIframe.contentWindow.postMessage({
+                            type: 'loadRequestHistory',
+                            requestId: item.id,
+                            projectId: projectId
+                        }, '*');
+                    }
+                }else if(currentActiveTab === 'advanced-config'){
+                    const advancedConfigIframe = document.getElementById('advanced-config-iframe');
+                    if (advancedConfigIframe) {
+                        advancedConfigIframe.contentWindow.postMessage({
+                            type: 'loadRequestInfo',
+                            requestId: item.id,
+                            projectId: projectId
+                        }, '*');
+                    }
+                }
+                // 更新API工具标题
+                const titleElement = document.querySelector('.container h3');
+                    if (titleElement && item.request_name) {
+                        titleElement.textContent = item.request_name;
+                    } else if (titleElement) {
+                        titleElement.textContent = 'API工具';
+                    }
+            });
+            
+            requestList.insertBefore(requestItem, requestList.firstChild);
+        }
+        
+        // 截断URL以适应显示
+        function truncateUrl(url, maxLength) {
+            if (url.length <= maxLength) {
+                return url;
+            }
+            return url.substring(0, maxLength) + '...';
+        }
+        
+        // 添加新请求
+        function addNewRequest() {
+            // 切换到API工具tab
+            switchTab('api-tool');
+            
+            // 更新标题
+            const titleElement = document.querySelector('.container h3');
+            if (titleElement) {
+                titleElement.textContent = '新增API接口';
+            }
+            
+            // 向API工具iframe发送新建请求消息
+            const apiToolIframe = document.getElementById('api-tool-iframe');
+            if (apiToolIframe) {
+                apiToolIframe.contentWindow.postMessage({
+                    type: 'newRequest'
+                }, '*');
+            }
+        }
+        
+        // 复制请求
+        function copyRequest(event, requestId) {
+            event.stopPropagation(); // 阻止事件冒泡
+            
+            // 获取项目ID
+            const projectId = getUrlParameter('project_id');
+            if (!projectId) {
+                alert('缺少项目ID参数');
+                return;
+            }
+            
+            // 发送复制请求
+            fetch('/api/copy_request_info', {
+                method: 'POST',
+                headers: get_x_token(),
+                body: JSON.stringify({
+                    request_id: requestId,
+                    project_id: Number(projectId)
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('请求复制成功');
+                    loadRequestList(); // 重新加载请求列表
+                } else {
+                    alert('复制失败: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('复制请求时发生错误:', error);
+                alert('复制请求时发生错误');
+            });
+        }
+        
+        // 删除请求
+        function deleteRequest(event, requestId) {
+            event.stopPropagation(); // 阻止事件冒泡
+            
+            if (!confirm('确定要删除这个请求吗？')) {
+                return;
+            }
+            
+            // 获取项目ID
+            const projectId = getUrlParameter('project_id');
+            if (!projectId) {
+                alert('缺少项目ID参数');
+                return;
+            }
+            
+            // 发送删除请求
+            fetch('/api/delete_request_info', {
+                method: 'POST',
+                headers: get_x_token(),
+                body: JSON.stringify({
+                    request_id: requestId,
+                    project_id: Number(projectId)
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('请求删除成功');
+                    loadRequestList(); // 重新加载请求列表
+                } else {
+                    alert('删除失败: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('删除请求时发生错误:', error);
+                alert('删除请求时发生错误');
+            });
+        }
+        
+        // 侧边栏控制函数
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            
+            if (sidebar.classList.contains('active')) {
+                closeSidebar();
+            } else {
+                openSidebar();
+            }
+        }
+        
+        function openSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            
+            sidebar.classList.add('active');
+            overlay.classList.add('active');
+        }
+        
+        function closeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+        }
+        
+        // 监听窗口大小变化，在大屏幕时自动关闭移动端侧边栏
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) {
+                closeSidebar();
+            }
+        });
+    </script>
+</body>
+</html>

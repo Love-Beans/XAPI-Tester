@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>高级配置</title>
+    <link rel="stylesheet" href="../js/layui@2.11.5/layui.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 1px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .header h2 {
+            margin: 0;
+            color: #333;
+            font-size: 24px;
+        }
+        
+        .table-section {
+            margin-bottom: 30px;
+        }
+        
+        .table-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .layui-table {
+            margin-top: 0;
+        }
+        
+        .message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 4px;
+            color: white;
+            font-weight: bold;
+            z-index: 9999;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
+        }
+        
+        .message.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        
+        .message.success {
+            background-color: #28a745;
+        }
+        
+        .message.error {
+            background-color: #dc3545;
+        }
+        
+        .message.warning {
+            background-color: #ffc107;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>高级配置管理</h2>
+            <button class="layui-btn layui-btn-primary" id="addConfigBtn">
+                <i class="layui-icon layui-icon-add-1"></i> 添加配置
+            </button>
+        </div>
+        
+        <div class="table-section">
+            <div class="table-title">全局配置</div>
+            <table id="global-table" class="layui-hide" lay-filter="global-table"></table>
+        </div>
+        
+        <div class="table-section">
+            <div class="table-title">自定义配置</div>
+            <table id="custom-table" class="layui-hide" lay-filter="custom-table"></table>
+        </div>
+    </div>
+    <div id="addConfigForm" style="display: none; padding: 20px;">
+        <form class="layui-form" lay-filter="configForm">
+            <div class="layui-form-item">
+                <label class="layui-form-label">配置类型</label>
+                <div class="layui-input-block">
+                    <input type="radio" name="configType" value="global" title="全局配置" checked>
+                    <input type="radio" name="configType" value="custom" title="自定义配置">
+                </div>
+            </div>
+            
+            <div class="layui-form-item" id="requestSelectItem">
+                <label class="layui-form-label">选择接口</label>
+                <div class="layui-input-block">
+                    <select name="requestId" id="requestId" lay-verify="required" lay-search lay-filter="requestId">
+                        <option value="">请选择接口</option>
+                    </select>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">Host地址</label>
+                <div class="layui-input-block">
+                    <select name="host" id="hostSelect" lay-filter="hostSelect">
+                        <option value="">请选择Host地址</option>
+                        <option value="custom">自定义</option>
+                    </select>
+                </div>
+            </div>
+            <div class="layui-form-item" id="customHostItem" style="display: none;">
+                <label class="layui-form-label">自定义Host</label>
+                <div class="layui-input-block">
+                    <input type="text" name="customHost" placeholder="请输入自定义Host地址" class="layui-input">
+                </div>
+            </div>
+            
+            <div class="layui-form-item">
+                <label class="layui-form-label">Body参数</label>
+                <div class="layui-input-block">
+                    <textarea name="bodyInfo" placeholder="请输入JSON格式的Body参数" class="layui-textarea" rows="6"></textarea>
+                </div>
+            </div>
+            
+            <div class="layui-form-item">
+                <label class="layui-form-label">Query参数</label>
+                <div class="layui-input-block">
+                    <textarea name="queryInfo" placeholder="请输入JSON格式的Query参数" class="layui-textarea" rows="6"></textarea>
+                </div>
+            </div>
+            
+            <!-- 动态隐藏 input 的容器 -->
+            <div id="hiddenInputContainer"></div>
+    
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <button class="layui-btn" lay-submit lay-filter="submitConfig">保存配置</button>
+                    <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    
+    <script src="../js/layui@2.11.5/layui.js"></script>
+    <script src="../js/jquery-3.7.1.min.js"></script>
+    <script src="../js/xapi/advanced_config.js"></script>
+</body>
+<!-- 添加配置表单 -->
+
+</html>

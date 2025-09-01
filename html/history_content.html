@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>历史记录内容</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 1px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .history-item {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            background-color: white;
+            overflow: hidden;
+        }
+        .history-header {
+            padding: 12px 15px;
+            background-color: #f8f9fa;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ddd;
+        }
+        .history-header:hover {
+            background-color: #e9ecef;
+        }
+        .history-summary {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex: 1;
+        }
+        .history-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .history-actions .btn {
+            padding: 4px 8px;
+            font-size: 11px;
+        }
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            min-width: 40px;
+            text-align: center;
+        }
+        .status-200 { background-color: #28a745; }
+        .status-300 { background-color: #17a2b8; }
+        .status-400 { background-color: #ffc107; color: #212529; }
+        .status-500 { background-color: #dc3545; }
+        .status-error { background-color: #6c757d; }
+        .request-name {
+            font-weight: bold;
+            color: #333;
+        }
+        .request-time {
+            color: #666;
+            font-size: 14px;
+        }
+        .response-time {
+            color: #666;
+            font-size: 14px;
+        }
+        .username {
+            color: #007bff;
+            font-size: 12px;
+            background-color: #e7f3ff;
+            padding: 2px 6px;
+            border-radius: 8px;
+            border: 1px solid #b3d9ff;
+        }
+        .expand-icon {
+            transition: transform 0.2s;
+            font-size: 14px;
+            color: #666;
+        }
+        .expand-icon.expanded {
+            transform: rotate(90deg);
+        }
+        .history-details {
+            display: none;
+            padding: 15px;
+            border-top: 1px solid #eee;
+            background-color: #fafafa;
+        }
+        .history-details.expanded {
+            display: block;
+        }
+        .detail-section {
+            margin-bottom: 15px;
+        }
+        .detail-section h4 {
+            margin: 0 0 8px 0;
+            color: #333;
+            font-size: 14px;
+        }
+        .detail-content {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 13px;
+            max-height: 200px;
+            overflow-y: auto;
+            text-align: left;
+        }
+        .detail-item {
+            margin-bottom: 8px;
+            text-align: left;
+        }
+        .detail-label {
+            font-weight: bold;
+            color: #333;
+            display: inline;
+        }
+        .detail-value {
+            margin-left: 0;
+            margin-bottom: 8px;
+            white-space: pre-wrap;
+            background-color: #f8f9fa;
+            padding: 4px 8px;
+            border-radius: 3px;
+            border-left: 3px solid #007bff;
+            text-align: left;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+        .btn-success:hover {
+            background-color: #1e7e34;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        #history-section h3 {
+            margin: 0 0 15px 0;
+            color: #333;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 历史记录列表 -->
+        <div id="history-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="margin: 0;">执行历史</h3>
+            </div>
+            <div id="history-list">
+                <div class="loading">请从左侧选择一个API请求查看执行历史...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let requestsData = [];
+        let historyData = [];
+        let currentRequestId = null;
+        const urlParams = new URLSearchParams(window.location.search);
+        var currentProjectId = urlParams.get('project_id');;
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 页面加载时显示提示信息
+            document.getElementById('history-list').innerHTML = '<div class="loading">请从左侧选择一个API请求查看执行历史...</div>';
+        });
+
+        // 监听来自父页面的消息
+        window.addEventListener('message', function(event) {
+            if (event.data.type === 'loadRequestHistory' && event.data.requestId) {
+                // 接收来自父页面的request_info_id
+                currentRequestId = event.data.requestId;
+                loadHistory(currentRequestId);
+            }
+        });
+
+        // 加载指定请求的历史记录
+        function loadHistory(requestId) {
+            document.getElementById('history-list').innerHTML = '<div class="loading">加载历史记录中...</div>';
+            
+            
+            fetch(`/api/history/${requestId}?project_id=${currentProjectId}`, {
+                headers: parent.get_x_token()
+            })
+                .then(response => response.json())
+                .then(data => {
+                    historyData = data;
+                    renderHistory(data);
+                })
+                .catch(error => {
+                    console.error('Error loading history:', error);
+                    document.getElementById('history-list').innerHTML = 
+                        '<div class="empty-state">加载历史记录失败</div>';
+                });
+        }
+
+        // 渲染历史记录
+        function renderHistory(data) {
+            const historyList = document.getElementById('history-list');
+            if (!data || data.length === 0) {
+                historyList.innerHTML = '<div class="empty-state">暂无执行历史</div>';
+                return;
+            }
+
+            // 按时间倒序排列（最新的在前）
+            const sortedData = data.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+            historyList.innerHTML = sortedData.map((item, index) => {
+                const statusClass = getStatusClass(getResponseStatus(item));
+                const formattedTime = formatTime(item.timestamp);
+                const responseTime = getResponseTime(item);
+                const requestInfo = getCurrentRequestInfo();
+                
+                return `
+                    <div class="history-item" data-id="${item.id}">
+                        <div class="history-header" onclick="toggleHistoryDetails(${item.id})">
+                            <div class="history-summary">
+                                ${item.username ? `<span class="username">用户: ${item.username}</span>` : ''}
+                                <span class="status-badge ${statusClass}">${getResponseStatus(item)}</span>
+                                <span class="request-time">${formattedTime}</span>
+                                <span class="response-time">${responseTime}ms</span>
+                            </div>
+                            <div class="history-actions">
+                                <span class="expand-icon" id="history-icon-${item.id}">▶</span>
+                            </div>
+                        </div>
+                        <div class="history-details" id="history-details-${item.id}">
+                            <div class="detail-section">
+                                <h4>请求信息</h4>
+                                <div class="detail-content">
+                                    <div class="detail-item"><span class="detail-label">接口:</span> ${item.request ? item.request.method + ' ' + item.request.url : 'N/A'}</div>
+                                    <div class="detail-item"><span class="detail-label">Query参数:</span></div>
+                                    <div class="detail-value">${formatJson(item.request ? item.request.query : {})}</div>
+                                    <div class="detail-item"><span class="detail-label">请求头:</span></div>
+                                    <div class="detail-value">${formatJson(item.request ? item.request.headers : {})}</div>
+                                    <div class="detail-item"><span class="detail-label">请求体:</span></div>
+                                    <div class="detail-value">${item.request ? (item.request.body || '(空)') : 'N/A'}</div>
+                                </div>
+                            </div>
+                            <div class="detail-section">
+                                <h4>响应信息</h4>
+                                <div class="detail-content">
+                                    <div class="detail-item"><span class="detail-label">状态码:</span> ${getResponseStatus(item)}</div>
+                                    <div class="detail-item"><span class="detail-label">响应时间:</span> ${getResponseTime(item)}ms</div>
+                                    <div class="detail-item"><span class="detail-label">响应头:</span></div>
+                                    <div class="detail-value">${formatJson(getResponseHeaders(item))}</div>
+                                    <div class="detail-item"><span class="detail-label">响应内容:</span></div>
+                                    <div class="detail-value">${getResponseBody(item) || '(空)'}</div>
+                                </div>
+                            </div>
+                            ${item.pre_request_results ? `
+                            <div class="detail-section">
+                                <h4>预返回信息</h4>
+                                <div class="detail-content">
+                                    <div class="detail-value">${formatJson(item.pre_request_results)}</div>
+                                </div>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 获取当前选中的请求信息
+        function getCurrentRequestInfo() {
+            if (!currentRequestId || !requestsData) return null;
+            return requestsData.find(req => req.id === currentRequestId);
+        }
+
+        // 切换历史记录详情显示
+        function toggleHistoryDetails(id) {
+            const details = document.getElementById(`history-details-${id}`);
+            const icon = document.getElementById(`history-icon-${id}`);
+            
+            if (details.classList.contains('expanded')) {
+                details.classList.remove('expanded');
+                icon.classList.remove('expanded');
+            } else {
+                details.classList.add('expanded');
+                icon.classList.add('expanded');
+            }
+        }
+
+        // // 从历史记录验证请求
+        // function validateFromHistory(historyId) {
+        //     const requestInfo = getCurrentRequestInfo();
+        //     if (!requestInfo) {
+        //         alert('无法获取请求信息');
+        //         return;
+        //     }
+            
+        //     // 构建请求数据
+        //     const requestData = {
+        //         url: requestInfo.url,
+        //         method: requestInfo.method,
+        //         headers: typeof requestInfo.headers === 'string' ? JSON.parse(requestInfo.headers) : requestInfo.headers,
+        //         auth: typeof requestInfo.auth === 'string' ? JSON.parse(requestInfo.auth) : requestInfo.auth,
+        //         body: requestInfo.body,
+        //         request_name: requestInfo.request_name,
+        //         query: typeof requestInfo.query === 'string' ? JSON.parse(requestInfo.query) : requestInfo.query,
+        //         request_info_id: requestInfo.id
+        //     };
+            
+        //     // 发送验证请求
+        //     fetch('/api/send-request', {
+        //         method: 'POST',
+        //         headers: {
+        //             'Content-Type': 'application/json'
+        //         },
+        //         body: JSON.stringify(requestData)
+        //     })
+        //     .then(response => response.json())
+        //     .then(data => {
+        //         alert(`验证完成！\n状态码: ${data.status}\n响应时间: ${data.responseTime}ms`);
+                
+        //         // 刷新历史记录
+        //         loadHistory(currentRequestId);
+        //     })
+        //     .catch(error => {
+        //         console.error('Error validating request:', error);
+        //         alert('验证失败: ' + error.message);
+        //     });
+        // }
+
+        // 加载到API工具
+        function loadToApiTool() {
+            const requestInfo = getCurrentRequestInfo();
+            if (!requestInfo) {
+                alert('无法获取请求信息');
+                return;
+            }
+            
+            // 通知父页面切换到API工具tab并加载数据
+            window.parent.postMessage({
+                type: 'switchToApiTool',
+                data: requestInfo
+            }, '*');
+        }
+
+        // 获取状态码样式类
+        function getStatusClass(status) {
+            if (!status) return 'status-error';
+            
+            const statusNum = parseInt(status);
+            if (statusNum >= 200 && statusNum < 300) return 'status-200';
+            if (statusNum >= 300 && statusNum < 400) return 'status-300';
+            if (statusNum >= 400 && statusNum < 500) return 'status-400';
+            if (statusNum >= 500) return 'status-500';
+            return 'status-error';
+        }
+
+        // 格式化时间
+        function formatTime(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+
+        // 格式化JSON
+        function formatJson(data) {
+            if (!data) return '(空)';
+            
+            try {
+                const parsed = typeof data === 'string' ? JSON.parse(data) : data;
+                return JSON.stringify(parsed, null, 2);
+            } catch (e) {
+                return data.toString();
+            }
+        }
+
+        // 获取响应状态码
+        function getResponseStatus(item) {
+            if (item.response && typeof item.response === 'object') {
+                return item.response.status || 'Error';
+            }
+            return item.status_code || 'Error';
+        }
+
+        // 获取响应时间
+        function getResponseTime(item) {
+            // 根据用户提供的数据结构，responseTime在顶级对象中
+            if (item.responseTime !== undefined) {
+                return item.responseTime;
+            }
+            // 兼容其他可能的字段名
+            if (item.response && typeof item.response === 'object') {
+                return item.response.responseTime || item.response.response_time || 0;
+            }
+            return item.response_time || 0;
+        }
+
+        // 获取响应头
+        function getResponseHeaders(item) {
+            if (item.response && typeof item.response === 'object') {
+                return item.response.headers || {};
+            }
+            return item.response_headers || {};
+        }
+
+        // 获取响应内容
+        function getResponseBody(item) {
+            if (item.response && typeof item.response === 'object') {
+                if (item.response.body && typeof item.response.body === 'object') {
+                    return JSON.stringify(item.response.body, null, 2);
+                }
+                return item.response.body || '';
+            }
+            return item.response_body || '';
+        }
+    </script>
+</body>
+</html>

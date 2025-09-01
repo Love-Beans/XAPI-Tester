@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>项目配置</title>
+    <link rel="stylesheet" href="../js/layui@2.11.5/layui.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        
+        .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .header h2 {
+            margin: 0;
+            margin-right: 15px;
+            color: #333;
+            font-size: 24px;
+        }
+        
+        .back-btn {
+            margin-right: 10px;
+        }
+        
+        .env-config-section {
+            margin-top: 20px;
+        }
+        
+        .env-item {
+            margin-bottom: 15px;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            background-color: #fafafa;
+        }
+        
+        .env-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .env-item-title {
+            font-weight: bold;
+            color: #333;
+            font-size: 16px;
+        }
+        
+        .env-item-actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 4px;
+            color: white;
+            font-weight: bold;
+            z-index: 9999;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
+        }
+        
+        .message.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        
+        .message.success {
+            background-color: #28a745;
+        }
+        
+        .message.error {
+            background-color: #dc3545;
+        }
+        
+        .message.warning {
+            background-color: #ffc107;
+            color: #333;
+        }
+        
+        .layui-tab-content {
+            padding: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <i class="layui-icon layui-icon-home" id="backBtn" onclick="getBackHome()"></i>
+            <h2 id="projectTitle">项目配置</h2>
+        </div>
+        
+        <div class="layui-tab layui-tab-brief" lay-filter="projectConfigTab">
+            <ul class="layui-tab-title">
+                <li class="layui-this">环境配置</li>
+                <li>成员管理</li>
+            </ul>
+            <div class="layui-tab-content">
+                <!-- 环境配置Tab -->
+                <div class="layui-tab-item layui-show">
+                    <div class="env-config-section">
+                        <div class="layui-form" lay-filter="envForm">
+                            <!-- Host配置 -->
+                            <div class="env-item">
+                                <div class="env-item-header">
+                                    <div class="env-item-title">Host配置</div>
+                                    <button type="button" class="layui-btn layui-btn-xs" id="addHostBtn">
+                                        <i class="layui-icon layui-icon-add-1"></i> 添加Host
+                                    </button>
+                                </div>
+                                <div id="hostContainer">
+                                    <!-- 动态添加的Host配置 -->
+                                </div>
+                            </div>
+                            
+                            <!-- Token配置 -->
+                            <div class="env-item">
+                                <div class="env-item-header">
+                                    <div class="env-item-title">Token配置</div>
+                                </div>
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">Token</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" name="token" placeholder="请输入Token" class="layui-input">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 自定义环境变量 -->
+                            <div class="env-item">
+                                <div class="env-item-header">
+                                    <div class="env-item-title">自定义环境变量</div>
+                                    <button type="button" class="layui-btn layui-btn-xs" id="addCustomEnvBtn">
+                                        <i class="layui-icon layui-icon-add-1"></i> 添加变量
+                                    </button>
+                                </div>
+                                <div id="customEnvContainer">
+                                    <!-- 动态添加的自定义环境变量 -->
+                                </div>
+                            </div>
+                            
+                            <!-- 保存配置按钮 -->
+                            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
+                                <button class="layui-btn" id="saveConfigBtn">
+                                    <i class="layui-icon layui-icon-ok"></i> 保存配置
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 成员管理Tab -->
+                <div class="layui-tab-item">
+                    <div class="layui-row">
+                        <div class="layui-col-md12">
+                            <button class="layui-btn" id="addMemberBtn">
+                                <i class="layui-icon layui-icon-add-1"></i> 添加成员
+                            </button>
+                        </div>
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <table id="memberTable" class="layui-hide" lay-filter="memberTable"></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 添加成员表单 -->
+    <div id="addMemberForm" style="display: none; padding: 20px;">
+        <form class="layui-form" lay-filter="memberForm">
+            <div class="layui-form-item">
+                <label class="layui-form-label">选择用户</label>
+                <div class="layui-input-block">
+                    <select name="user_id" id="userSelect" lay-verify="required">
+                        <option value="">请选择用户</option>
+                    </select>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">权限级别</label>
+                <div class="layui-input-block">
+                    <select name="permission_level" lay-verify="required">
+                        <option value="">请选择权限</option>
+                        <option value="read">只读</option>
+                        <option value="write">读写</option>
+                        <option value="owner">所有者</option>
+                    </select>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <button class="layui-btn" lay-submit lay-filter="addMember">添加成员</button>
+                    <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Host配置模板 -->
+    <script type="text/html" id="hostTemplate">
+        <div class="layui-row layui-col-space10 host-row" style="margin-bottom: 10px;">
+            <div class="layui-col-md5">
+                <input type="text" placeholder="环境名称（如：dev、prod等）" class="layui-input host-key">
+            </div>
+            <div class="layui-col-md6">
+                <input type="text" placeholder="Host地址" class="layui-input host-value">
+            </div>
+            <div class="layui-col-md1">
+                <button type="button" class="layui-btn layui-btn-danger layui-btn-xs remove-host">
+                    <i class="layui-icon layui-icon-delete"></i>
+                </button>
+            </div>
+        </div>
+    </script>
+    
+    <!-- 添加自定义环境变量模板 -->
+    <script type="text/html" id="customEnvTemplate">
+        <div class="layui-row layui-col-space10 custom-env-row" style="margin-bottom: 10px;">
+            <div class="layui-col-md5">
+                <input type="text" placeholder="变量名" class="layui-input custom-env-key">
+            </div>
+            <div class="layui-col-md6">
+                <input type="text" placeholder="变量值" class="layui-input custom-env-value">
+            </div>
+            <div class="layui-col-md1">
+                <button type="button" class="layui-btn layui-btn-danger layui-btn-xs remove-custom-env">
+                    <i class="layui-icon layui-icon-delete"></i>
+                </button>
+            </div>
+        </div>
+    </script>
+    
+    <!-- 成员管理工具栏模板 -->
+    <script type="text/html" id="memberToolbar">
+        <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+    </script>
+    
+    <script src="../js/layui@2.11.5/layui.js"></script>
+    <script src="../js/jquery-3.7.1.min.js"></script>
+    <script src="../js/xapi_tool.js"></script>
+    <script>
+        // 返回按钮
+        function getBackHome() {
+            console.log("返回主页被点击了！");
+            window.location.href = '/';
+        }
+        layui.use(['element', 'form', 'table', 'layer'], async function(){
+            var element = layui.element;
+            var form = layui.form;
+            var table = layui.table;
+            var layer = layui.layer;
+            
+            // 获取项目ID
+            var projectId = getUrlParameter('project_id');
+            if (!projectId) {
+                layer.msg('缺少项目ID参数', {icon: 2});
+                return;
+            }
+            if(!await checkAuth()){
+                return;
+            }
+            // 初始化页面
+            initPage();
+            
+            function initPage() {
+                loadProjectInfo();
+                loadEnvironmentConfig();
+                //initMemberTable();
+            }
+            
+            // 加载项目信息
+            function loadProjectInfo() {
+                // 获取URL参数中的项目名称
+                var projectName = getUrlParameter('project_name');
+                if (projectName) {
+                    // 解码项目名称
+                    projectName = decodeURIComponent(projectName);
+                    $('#projectTitle').text('项目配置 - ' + projectName);
+                } else {
+                    // 如果没有项目名称参数，使用项目ID
+                    $('#projectTitle').text('项目配置 - 项目' + projectId);
+                }
+            }
+            
+            // 加载环境配置
+            function loadEnvironmentConfig() {
+                $.ajax({
+                    url: '/api/project_env/' + projectId,
+                    type: 'GET',
+                    headers: get_x_token(),
+                    success: function(response) {
+                        if (response.success) {
+                            var envData = response.data.env || {};
+                            
+                            // 填充Host配置
+                            var hostConfig = envData.host || {};
+                            loadHostConfig(hostConfig);
+                            
+                            // 填充Token配置
+                            $('input[name="token"]').val(envData.token || '');
+                            
+                            // 填充自定义环境变量
+                            loadCustomEnvVars(envData);
+                        }
+                    },
+                    error: function() {
+                        showMessage('加载环境配置失败', 'error');
+                    }
+                });
+            }
+            
+            // 加载Host配置
+            function loadHostConfig(hostConfig) {
+                var hostContainer = $('#hostContainer');
+                hostContainer.empty();
+                
+                // 遍历Host配置
+                for (var key in hostConfig) {
+                    addHostRow(key, hostConfig[key]);
+                }
+            }
+            
+            // 加载自定义环境变量
+            function loadCustomEnvVars(envData) {
+                var customEnvContainer = $('#customEnvContainer');
+                customEnvContainer.empty();
+                
+                // 遍历环境数据，排除host和token
+                for (var key in envData) {
+                    if (key !== 'host' && key !== 'token') {
+                        addCustomEnvRow(key, envData[key]);
+                    }
+                }
+            }
+            
+            // 添加Host配置行
+            function addHostRow(key, value) {
+                var template = $('#hostTemplate').html();
+                var $row = $(template);
+                
+                if (key && value !== undefined) {
+                    $row.find('.host-key').val(key);
+                    $row.find('.host-value').val(value);
+                }
+                
+                $('#hostContainer').append($row);
+            }
+            
+            // 添加自定义环境变量行
+            function addCustomEnvRow(key, value) {
+                var template = $('#customEnvTemplate').html();
+                var $row = $(template);
+                
+                if (key && value !== undefined) {
+                    $row.find('.custom-env-key').val(key);
+                    $row.find('.custom-env-value').val(value);
+                }
+                
+                $('#customEnvContainer').append($row);
+            }
+            
+            // 添加Host配置按钮事件
+            $('#addHostBtn').click(function() {
+                addHostRow();
+            });
+            
+            // 删除Host配置事件
+            $(document).on('click', '.remove-host', function() {
+                $(this).closest('.host-row').remove();
+            });
+            
+            // 添加自定义环境变量按钮事件
+            $('#addCustomEnvBtn').click(function() {
+                addCustomEnvRow();
+            });
+            
+            // 删除自定义环境变量事件
+            $(document).on('click', '.remove-custom-env', function() {
+                $(this).closest('.custom-env-row').remove();
+            });
+            
+            // 保存配置
+            $('#saveConfigBtn').click(function() {
+                saveEnvironmentConfig();
+            });
+            
+            // 保存环境配置
+            function saveEnvironmentConfig() {
+                var envConfig = {
+                    host: {},
+                    token: $('input[name="token"]').val()
+                };
+                
+                // 收集Host配置
+                $('.host-row').each(function() {
+                    var key = $(this).find('.host-key').val().trim();
+                    var value = $(this).find('.host-value').val().trim();
+                    if (key) {
+                        envConfig.host[key] = value;
+                    }
+                });
+                
+                // 收集自定义环境变量
+                $('.custom-env-row').each(function() {
+                    var key = $(this).find('.custom-env-key').val().trim();
+                    var value = $(this).find('.custom-env-value').val().trim();
+                    if (key) {
+                        envConfig[key] = value;
+                    }
+                });
+                
+                $.ajax({
+                    url: '/api/project_env/' + projectId,
+                    type: 'POST',
+                    contentType: 'application/json',
+                    headers: get_x_token(),
+                    data: JSON.stringify({ env: envConfig }),
+                    success: function(response) {
+                        if (response.success) {
+                            showMessage('配置保存成功', 'success');
+                        } else {
+                            showMessage(response.message || '保存失败', 'error');
+                        }
+                    },
+                    error: function() {
+                        showMessage('保存配置失败', 'error');
+                    }
+                });
+            }
+            
+            // 初始化成员表格
+            function initMemberTable() {
+                table.render({
+                    elem: '#memberTable',
+                    url: '/api/projects/members?project_id=' + projectId,
+                    headers: get_x_token(),
+                    cols: [[
+                        {field: 'username', title: '用户名', minwidth: 150},
+                        {field: 'permission_level', title: '权限', minwidth: 120, templet: function(d){
+                            var permissionMap = {
+                                'owner': '所有者',
+                                'write': '读写',
+                                'read': '只读'
+                            };
+                            return permissionMap[d.permission_level] || d.permission_level;
+                        }},
+                        {field: 'granted_at', title: '更新时间', minwidth: 180},
+                        {title: '操作', toolbar: '#memberToolbar'}
+                    ]],
+                    page: true,          
+                    response: {
+                        statusName: 'code',
+                        statusCode: 200,
+                        msgName: 'message',
+                        countName: 'total',
+                        dataName: 'data'
+                    },
+                    parseData: function(res) {
+                        return {
+                            code: res.error ? 500 : 200,
+                            message: res.error || 'success',
+                            total: res.total ? res.members.length : 0,
+                            data: res.members || []
+                        };
+                    }
+                    
+                });
+                
+                // 监听工具条
+                table.on('tool(memberTable)', function(obj){
+                    var data = obj.data;
+                    if(obj.event === 'del'){
+                        layer.confirm('确定删除该成员吗？', function(index){
+                            removeMember(data.user_id);
+                            layer.close(index);
+                        });
+                    }
+                });
+            }
+            
+            // 添加成员
+            $('#addMemberBtn').click(function() {
+                layer.open({
+                    type: 1,
+                    title: '添加项目成员',
+                    content: $('#addMemberForm'),
+                    area: ['500px', '400px'],
+                    success: function() {
+                        loadAllUsers();
+                    },
+                    end: function(){
+                        $('#addMemberForm').css('display', 'none');
+                    }
+                });
+            });
+            
+            // 加载所有用户
+            function loadAllUsers() {
+                $.ajax({
+                    url: '/api/users',
+                    type: 'GET',
+                    headers: get_x_token(),
+                    success: function(response) {
+                        if (response.success) {
+                            var userSelect = $('#userSelect');
+                            userSelect.empty();
+                            userSelect.append('<option value="">请选择用户</option>');
+                            
+                            response.data.forEach(function(user) {
+                                userSelect.append('<option value="' + user.id + '">' + user.username + '</option>');
+                            });
+                            
+                            form.render('select');
+                        }
+                    }
+                });
+            }
+            
+            // 移除成员
+            function removeMember(userId) {
+                $.ajax({
+                    url: '/api/projects/members',
+                    type: 'DELETE',
+                    headers: get_x_token(),
+                    data: JSON.stringify({
+                         project_id:projectId,
+                         user_id: userId,
+                     }),
+                    success: function(response) {
+                        if (response.success) {
+                            showMessage('成员删除成功', 'success');
+                            table.reload('memberTable');
+                        } else {
+                            showMessage(response.message || '删除失败', 'error');
+                        }
+                    },
+                    error: function() {
+                         showMessage('删除成员失败', 'error');
+                     }
+                 });
+             }
+             
+             // 监听添加成员表单提交
+             form.on('submit(addMember)', function(data){
+                 $.ajax({
+                     url: '/api/projects/members',
+                     type: 'POST',
+                     contentType: 'application/json',
+                     headers: get_x_token(),
+                     data: JSON.stringify({
+                         project_id:projectId,
+                         user_id: data.field.user_id,
+                         permission_level: data.field.permission_level
+                     }),
+                     success: function(response) {
+                         if (response.success) {
+                             showMessage('成员添加成功', 'success');
+                             layer.closeAll();
+                             $('#addMemberForm').hide();
+                             table.reload('memberTable');
+                             form.val('memberForm', {});
+                         } else {
+                             showMessage(response.message || '添加失败', 'error');
+                         }
+                     },
+                     error: function() {
+                         showMessage('添加成员失败', 'error');
+                     }
+                 });
+                 return false;
+             });
+             
+             // 初始化表格
+             if (element.tabChange) {
+                 element.on('tab(projectConfigTab)', function(data){
+                     if (data.index === 1) { // 成员管理tab
+                         initMemberTable();
+                     }
+                     if (data.index === 0) { // 成员管理tab
+                        loadEnvironmentConfig();
+                     }
+                 });
+             }
+            
+            // 工具函数
+            function getUrlParameter(name) {
+                name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+                var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+                var results = regex.exec(location.search);
+                return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+            }
+            
+            function showMessage(message, type) {
+                var $message = $('<div class="message ' + type + '">' + message + '</div>');
+                $('body').append($message);
+                
+                setTimeout(function() {
+                    $message.addClass('show');
+                }, 100);
+                
+                setTimeout(function() {
+                    $message.removeClass('show');
+                    setTimeout(function() {
+                        $message.remove();
+                    }, 300);
+                }, 3000);
+            }
+        });
+    </script>
+</body>
+</html>
