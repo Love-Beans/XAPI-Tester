@@ -20,6 +20,7 @@ __pycache__/
 *.db
 *.sqlite
 *.sqlite3
+*.db.backup_*
 
 # 备份文件
 *.backup
