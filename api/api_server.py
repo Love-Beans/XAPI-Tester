@@ -15,6 +15,7 @@ from db_orm import (
     get_request_info_list,
     get_all_request_list,
     get_history_by_request_info_id,
+    get_history_by_request_info_id_with_permission,
     get_request_info_by_id,
     add_project_request_relation,
     get_advanced_config,
@@ -473,7 +474,12 @@ def get_request_info():
 @project_read_permission
 def get_request_history(request_info_id):
     try:
-        history = get_history_by_request_info_id(request_info_id)
+        # 获取用户信息
+        user_id = g.user_id
+        user_role = g.role
+        
+        # 根据用户权限获取历史记录
+        history = get_history_by_request_info_id_with_permission(request_info_id, user_id, user_role)
         return jsonify(history)
     except Exception as e:
         return jsonify({'error': str(e)}), 500

@@ -372,92 +372,149 @@ def get_history_by_request_info_id(request_info_id):
             request_info_id=request_info_id
         ).order_by(desc(RequestHistory.id)).all()
         
-        history = []
-        for row in histories:
-            # 解析存储的JSON字符串
-            try:
-                response_headers = json.loads(row.response_headers) if row.response_headers else {}
-            except:
-                response_headers = {}
-                
-            try:
-                response_body = json.loads(row.response_body) if row.response_body else {}
-            except:
-                response_body = row.response_body
-                
-            try:
-                auth = json.loads(row.auth) if row.auth else {}
-            except:
-                auth = {}
-                
-            try:
-                query = json.loads(row.query) if row.query else {}
-            except:
-                query = {}
-                
-            try:
-                request_headers = json.loads(row.request_headers) if row.request_headers else {}
-            except:
-                request_headers = {}
-                
-            try:
-                request_body = row.request_body if row.request_body else ''
-            except:
-                request_body = ''
-                
-            try:
-                execution_details = json.loads(row.execution_details) if row.execution_details else None
-            except:
-                execution_details = None
-                
-            try:
-                pre_request_results = json.loads(row.pre_request_results) if row.pre_request_results else None
-            except:
-                pre_request_results = None
-            
-            # 构建执行状态对象
-            execution_status = None
-            if row.execution_status:
-                execution_status = {
-                    'id': row.id,
-                    'timestamp': row.timestamp,
-                    'status': row.execution_status,
-                    'message': row.execution_message,
-                    'details': execution_details
-                }
-            
-            history.append({
-                'id': row.id,
-                'timestamp': row.timestamp,
-                'request_info_id': row.request_info_id,
-                'username': row.username,
-                'pre_request_results': pre_request_results,
-                'request': {
-                    'url': row.url,
-                    'method': row.method,
-                    'headers': request_headers,
-                    'auth': auth,
-                    'body': request_body,
-                    'query': query,
-                    'name': row.request_name
-                },
-                'response': {
-                    'status': row.response_status,
-                    'headers': response_headers,
-                    'body': response_body
-                },
-                'responseTime': row.response_time,
-                'executionStatus': execution_status,
-                'queryParams': query
-            })
-        
-        return history
+        return _format_history_data(histories)
         
     except Exception as e:
         log.error(f"Error getting history by request info id: {e}")
         return []
     finally:
         db_manager.close_session(session)
+
+def get_history_by_request_info_id_with_permission(request_info_id, user_id, user_role):
+    """根据请求信息ID和用户权限获取历史记录"""
+    session = get_db_session()
+    try:
+        # 管理员可以查看所有记录
+        if user_role == 'admin':
+            histories = session.query(RequestHistory).filter_by(
+                request_info_id=request_info_id
+            ).order_by(desc(RequestHistory.id)).all()
+        else:
+            # 检查用户是否是项目Owner
+            # 首先获取请求所属的项目
+            project_relation = session.query(ProjectRequestRelation).filter_by(
+                request_info_id=request_info_id
+            ).first()
+            
+            if project_relation:
+                # 检查用户对该项目的权限
+                permission = check_user_project_permission(user_id, project_relation.project_id)
+                if permission == 'owner':
+                    # 项目Owner可以查看所有记录
+                    histories = session.query(RequestHistory).filter_by(
+                        request_info_id=request_info_id
+                    ).order_by(desc(RequestHistory.id)).all()
+                else:
+                    # 其他权限用户只能查看自己的记录
+                    user = session.query(User).filter_by(id=user_id).first()
+                    if user:
+                        histories = session.query(RequestHistory).filter_by(
+                            request_info_id=request_info_id,
+                            username=user.username
+                        ).order_by(desc(RequestHistory.id)).all()
+                    else:
+                        histories = []
+            else:
+                # 如果请求不属于任何项目，只能查看自己的记录
+                user = session.query(User).filter_by(id=user_id).first()
+                if user:
+                    histories = session.query(RequestHistory).filter_by(
+                        request_info_id=request_info_id,
+                        username=user.username
+                    ).order_by(desc(RequestHistory.id)).all()
+                else:
+                    histories = []
+        
+        return _format_history_data(histories)
+        
+    except Exception as e:
+        log.error(f"Error getting history by request info id with permission: {e}")
+        return []
+    finally:
+        db_manager.close_session(session)
+
+def _format_history_data(histories):
+    """格式化历史记录数据"""
+    history = []
+    for row in histories:
+        # 解析存储的JSON字符串
+        try:
+            response_headers = json.loads(row.response_headers) if row.response_headers else {}
+        except:
+            response_headers = {}
+            
+        try:
+            response_body = json.loads(row.response_body) if row.response_body else {}
+        except:
+            response_body = row.response_body
+            
+        try:
+            auth = json.loads(row.auth) if row.auth else {}
+        except:
+            auth = {}
+            
+        try:
+            query = json.loads(row.query) if row.query else {}
+        except:
+            query = {}
+            
+        try:
+            request_headers = json.loads(row.request_headers) if row.request_headers else {}
+        except:
+            request_headers = {}
+            
+        try:
+            request_body = row.request_body if row.request_body else ''
+        except:
+            request_body = ''
+            
+        try:
+            execution_details = json.loads(row.execution_details) if row.execution_details else None
+        except:
+            execution_details = None
+            
+        try:
+            pre_request_results = json.loads(row.pre_request_results) if row.pre_request_results else None
+        except:
+            pre_request_results = None
+        
+        # 构建执行状态对象
+        execution_status = None
+        if row.execution_status:
+            execution_status = {
+                'id': row.id,
+                'timestamp': row.timestamp,
+                'status': row.execution_status,
+                'message': row.execution_message,
+                'details': execution_details
+            }
+        
+        history.append({
+            'id': row.id,
+            'timestamp': row.timestamp,
+            'request_info_id': row.request_info_id,
+            'username': row.username,
+            'pre_request_results': pre_request_results,
+            'request': {
+                'url': row.url,
+                'method': row.method,
+                'headers': request_headers,
+                'auth': auth,
+                'body': request_body,
+                'query': query,
+                'name': row.request_name
+            },
+            'response': {
+                'status': row.response_status,
+                'headers': response_headers,
+                'body': response_body
+            },
+            'responseTime': row.response_time,
+            'executionStatus': execution_status,
+            'queryParams': query
+        })
+    
+    return history
 
 def get_request_info_by_id(request_info_id):
     """根据ID获取请求信息"""
